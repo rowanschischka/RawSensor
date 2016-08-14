@@ -1,4 +1,4 @@
-package com.example.rowanschischka.rawaccelerometertocsv;
+package com.example.rowanschischka.rawsensor;
 
 import org.junit.Test;
 
