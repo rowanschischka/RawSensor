@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/settings" />
+
+    <TextView
+        android:id="@+id/settings_value"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/processing" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/SENSOR_DELAY_FASTEST" />
+
+    <TextView
+        android:id="@+id/fastest_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/processing" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/SENSOR_DELAY_GAME" />
+
+    <TextView
+        android:id="@+id/game_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/processing" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/SENSOR_DELAY_UI" />
+
+    <TextView
+        android:id="@+id/ui_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/processing" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/SENSOR_DELAY_NORMAL" />
+
+    <TextView
+        android:id="@+id/normal_result"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/processing" />
+</LinearLayout>
