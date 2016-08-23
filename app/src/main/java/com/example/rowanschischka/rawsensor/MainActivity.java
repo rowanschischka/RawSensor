@@ -16,7 +16,6 @@ import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.RadioButton;
-import android.widget.RadioGroup;
 import android.widget.TextView;
 
 import java.io.BufferedWriter;
@@ -74,6 +73,11 @@ public class MainActivity extends AppCompatActivity {
     public void onStartButtonClicked(View view) {
         Intent intent = new Intent(MainActivity.this, SensorActivity.class);
         intent.putExtra("SENSOR_DELAY", sensorDelay);
+        startActivity(intent);
+    }
+
+    public void onBenchmarkButtonClicked(View view) {
+        Intent intent = new Intent(MainActivity.this, SensorBenchmarkActivity.class);
         startActivity(intent);
     }
 
@@ -160,20 +164,14 @@ public class MainActivity extends AppCompatActivity {
     /* Checks if external storage is available for read and write */
     public boolean isExternalStorageWritable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED.equals(state);
     }
 
     /* Checks if external storage is available to at least read */
     public boolean isExternalStorageReadable() {
         String state = Environment.getExternalStorageState();
-        if (Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state)) {
-            return true;
-        }
-        return false;
+        return Environment.MEDIA_MOUNTED.equals(state) ||
+                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
     }
 
 }

@@ -7,7 +7,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/settings" />
+        android:text="@string/settings"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/settings_value"
@@ -18,7 +19,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/SENSOR_DELAY_FASTEST" />
+        android:text="@string/SENSOR_DELAY_FASTEST"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/fastest_result"
@@ -29,7 +31,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/SENSOR_DELAY_GAME" />
+        android:text="@string/SENSOR_DELAY_GAME"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/game_result"
@@ -40,7 +43,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/SENSOR_DELAY_UI" />
+        android:text="@string/SENSOR_DELAY_UI"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/ui_result"
@@ -51,7 +55,8 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/SENSOR_DELAY_NORMAL" />
+        android:text="@string/SENSOR_DELAY_NORMAL"
+        android:textStyle="bold" />
 
     <TextView
         android:id="@+id/normal_result"

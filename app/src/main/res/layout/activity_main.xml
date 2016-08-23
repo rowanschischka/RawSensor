@@ -57,11 +57,17 @@
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/delete_db_button"
-        android:onClick="onDestroyClicked"/>
+        android:onClick="onDestroyClicked"
+        android:text="@string/delete_db_button" />
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/export_database"
-        android:onClick="onExportClicked"/>
+        android:onClick="onExportClicked"
+        android:text="@string/export_database" />
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:onClick="onBenchmarkButtonClicked"
+        android:text="@string/test_delay" />
 </LinearLayout>
