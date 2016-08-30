@@ -9,46 +9,6 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     tools:context="com.example.rowanschischka.rawsensor.MainActivity">
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/ChooseSensor" />
-
-    <RadioGroup xmlns:android="http://schemas.android.com/apk/res/android"
-        android:layout_width="fill_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
-
-        <RadioButton
-            android:id="@+id/SENSOR_DELAY_FASTEST"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onSensorRateClicked"
-            android:text="@string/SENSOR_DELAY_FASTEST" />
-
-        <RadioButton
-            android:id="@+id/SENSOR_DELAY_GAME"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onSensorRateClicked"
-            android:text="@string/SENSOR_DELAY_GAME" />
-
-        <RadioButton
-            android:id="@+id/SENSOR_DELAY_NORMAL"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onSensorRateClicked"
-            android:text="@string/SENSOR_DELAY_NORMAL" />
-
-        <RadioButton
-            android:id="@+id/SENSOR_DELAY_UI"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:onClick="onSensorRateClicked"
-            android:text="@string/SENSOR_DELAY_UI" />
-    </RadioGroup>
-
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -64,10 +24,4 @@
         android:layout_height="wrap_content"
         android:onClick="onExportClicked"
         android:text="@string/export_database" />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onBenchmarkButtonClicked"
-        android:text="@string/test_delay" />
 </LinearLayout>

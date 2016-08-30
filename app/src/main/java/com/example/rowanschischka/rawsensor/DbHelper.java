@@ -15,22 +15,36 @@ public class DbHelper extends SQLiteOpenHelper {
     private static final String LONG_TYPE = " LONG";
     private static final String FLOAT_TYPE = " FLOAT";
     private static final String COMMA_SEP = ",";
+    private static final String INT_TYPE = " INT";
 
     public DbHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + DataBaseSchema.TABLE_NAME + " (" +
-                DataBaseSchema._ID + " INTEGER PRIMARY KEY," +
-                DataBaseSchema.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
-                DataBaseSchema.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
-                DataBaseSchema.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
-                DataBaseSchema.COLUMN_NAME_TIME + LONG_TYPE + " )");
+        db.execSQL("CREATE TABLE " + AccelerometerColumns.TABLE_NAME + " (" +
+                AccelerometerColumns._ID + " INTEGER PRIMARY KEY," +
+                AccelerometerColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
+                AccelerometerColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
+                AccelerometerColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
+                AccelerometerColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
+        db.execSQL("CREATE TABLE " + RotationSensorColumns.TABLE_NAME + " (" +
+                RotationSensorColumns._ID + " INTEGER PRIMARY KEY," +
+                RotationSensorColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
+                RotationSensorColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
+                RotationSensorColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
+                RotationSensorColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
+        db.execSQL("CREATE TABLE " + AccuracyColumns.TABLE_NAME + " (" +
+                AccuracyColumns._ID + " INTEGER PRIMARY KEY," +
+                AccuracyColumns.COLUMN_NAME_ACCURACY + INT_TYPE + COMMA_SEP +
+                AccuracyColumns.COLUMN_NAME_SENSOR_TYPE + INT_TYPE + COMMA_SEP +
+                AccuracyColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + DataBaseSchema.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + AccelerometerColumns.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + AccuracyColumns.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + RotationSensorColumns.TABLE_NAME);
         onCreate(db);
     }
 
@@ -38,8 +52,10 @@ public class DbHelper extends SQLiteOpenHelper {
         onUpgrade(db, oldVersion, newVersion);
     }
 
-    public void dropTable(SQLiteDatabase db){
-        db.execSQL("DROP TABLE IF EXISTS " + DataBaseSchema.TABLE_NAME);
+    public void dropTable(SQLiteDatabase db) {
+        db.execSQL("DROP TABLE IF EXISTS " + AccelerometerColumns.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + AccuracyColumns.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + RotationSensorColumns.TABLE_NAME);
         onCreate(db);
     }
 }

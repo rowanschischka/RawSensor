@@ -5,7 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/RawAccelerometertoCSV.iml" filepath="$PROJECT_DIR$/RawAccelerometertoCSV.iml" />
       <module fileurl="file://$PROJECT_DIR$/RawSensor.iml" filepath="$PROJECT_DIR$/RawSensor.iml" />
       <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
 </project>

@@ -48,36 +48,9 @@ public class MainActivity extends AppCompatActivity {
         linearLayout.addView(tv);
     }
 
-    public void onSensorRateClicked(View view) {
-        boolean checked = ((RadioButton) view).isChecked();
-        switch (view.getId()) {
-            case R.id.SENSOR_DELAY_FASTEST:
-                if (checked)
-                    sensorDelay = SensorManager.SENSOR_DELAY_FASTEST;
-                break;
-            case R.id.SENSOR_DELAY_GAME:
-                if (checked)
-                    sensorDelay = SensorManager.SENSOR_DELAY_GAME;
-                break;
-            case R.id.SENSOR_DELAY_NORMAL:
-                if (checked)
-                    sensorDelay = SensorManager.SENSOR_DELAY_NORMAL;
-                break;
-            case R.id.SENSOR_DELAY_UI:
-                if (checked)
-                    sensorDelay = SensorManager.SENSOR_DELAY_UI;
-                break;
-        }
-    }
-
     public void onStartButtonClicked(View view) {
         Intent intent = new Intent(MainActivity.this, SensorActivity.class);
         intent.putExtra("SENSOR_DELAY", sensorDelay);
-        startActivity(intent);
-    }
-
-    public void onBenchmarkButtonClicked(View view) {
-        Intent intent = new Intent(MainActivity.this, SensorBenchmarkActivity.class);
         startActivity(intent);
     }
 
@@ -98,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
     public void onExportClicked(View view) {
         Cursor cursor = null;
         try {
-            cursor = db.rawQuery("SELECT * FROM " + DataBaseSchema.TABLE_NAME, null);
+            cursor = db.rawQuery("SELECT * FROM " + AccelerometerColumns.TABLE_NAME, null);
         } catch (SQLiteException e) {
             alertDialog("No Data found");
             return;
@@ -166,12 +139,4 @@ public class MainActivity extends AppCompatActivity {
         String state = Environment.getExternalStorageState();
         return Environment.MEDIA_MOUNTED.equals(state);
     }
-
-    /* Checks if external storage is available to at least read */
-    public boolean isExternalStorageReadable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
-    }
-
 }

@@ -18,7 +18,6 @@
             </intent-filter>
         </activity>
         <activity android:name=".SensorActivity"></activity>
-        <activity android:name=".SensorBenchmarkActivity"></activity>
     </application>
 
 </manifest>
