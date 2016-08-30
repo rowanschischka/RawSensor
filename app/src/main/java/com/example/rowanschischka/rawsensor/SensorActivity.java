@@ -24,7 +24,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     private final float[] mRotationMatrix = new float[16];
     private volatile float[] mAccelerometerMatrix = new float[4];
 
-    private long startTime;
+    private long startTime = -1L;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +44,8 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         //database
         dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
-        startTime = SystemClock.uptimeMillis();
+        //sensor returns nano seconds so need to multiply this by 1,000,000
+        //startTime = SystemClock.uptimeMillis()*1000000;
     }
 
     protected void onPause() {
@@ -60,9 +61,11 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
 
     @Override
     public void onSensorChanged(SensorEvent event) {
+        if (startTime < 0) {
+            startTime = event.timestamp;
+        }
         long time = event.timestamp - startTime;
-        TextView clockTV = (TextView) findViewById(R.id.clock);
-        clockTV.setText("Time " + time);
+        //Log.d("Time", startTime + ", " + event.timestamp + ", " + time);
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             mAccelerometerMatrix[0] = event.values[0];
             mAccelerometerMatrix[1] = event.values[1];
