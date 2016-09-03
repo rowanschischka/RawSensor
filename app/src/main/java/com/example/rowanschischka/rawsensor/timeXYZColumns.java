@@ -5,8 +5,10 @@ import android.provider.BaseColumns;
 /**
  * Created by rowanschischka on 15/08/16.
  */
-public abstract class AccelerometerColumns implements BaseColumns {
-    public static final String TABLE_NAME = "accelerometerData";
+public abstract class timeXYZColumns implements BaseColumns {
+    public static final String TABLE_ACCELEROMETER = "accelerometerData";
+    public static final String TABLE_ROTATION_RAW = "rotationRawData";
+    public static final String TABLE_ROTATION_ADJUSTED = "rotationAdjusteedData";
     public static final String COLUMN_NAME_X = "x";
     public static final String COLUMN_NAME_Y = "y";
     public static final String COLUMN_NAME_Z = "z";

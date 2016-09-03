@@ -22,12 +22,12 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + AccelerometerColumns.TABLE_NAME + " (" +
-                AccelerometerColumns._ID + " INTEGER PRIMARY KEY," +
-                AccelerometerColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
-                AccelerometerColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
-                AccelerometerColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
-                AccelerometerColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
+        db.execSQL("CREATE TABLE " + timeXYZColumns.TABLE_ACCELEROMETER + " (" +
+                timeXYZColumns._ID + " INTEGER PRIMARY KEY," +
+                timeXYZColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
+                timeXYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
+                timeXYZColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
+                timeXYZColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
         db.execSQL("CREATE TABLE " + RotationSensorColumns.TABLE_NAME + " (" +
                 RotationSensorColumns._ID + " INTEGER PRIMARY KEY," +
                 RotationSensorColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
@@ -42,7 +42,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + AccelerometerColumns.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + timeXYZColumns.TABLE_ACCELEROMETER);
         db.execSQL("DROP TABLE IF EXISTS " + AccuracyColumns.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + RotationSensorColumns.TABLE_NAME);
         onCreate(db);
@@ -53,7 +53,7 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void dropTable(SQLiteDatabase db) {
-        db.execSQL("DROP TABLE IF EXISTS " + AccelerometerColumns.TABLE_NAME);
+        db.execSQL("DROP TABLE IF EXISTS " + timeXYZColumns.TABLE_ACCELEROMETER);
         db.execSQL("DROP TABLE IF EXISTS " + AccuracyColumns.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + RotationSensorColumns.TABLE_NAME);
         onCreate(db);

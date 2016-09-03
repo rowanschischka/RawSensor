@@ -16,4 +16,14 @@
     <string name="settings">Settings</string>
     <string name="processing">Processing...</string>
     <string name="test_delay">Benchmark delay settings</string>
+    <string name="recording">Recording...</string>
+    <string name="sensor_service_connected">Sensors recording</string>
+    <string name="sensor_service_disconnected">Sensor disconnected</string>
+    <string name="album_name">SensorRecordings</string>
+    <string-array name="recording_array">
+        <item>Recording</item>
+        <item>Recording.</item>
+        <item>Recording..</item>
+        <item>Recording...</item>
+    </string-array>
 </resources>

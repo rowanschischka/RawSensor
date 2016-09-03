@@ -15,7 +15,6 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.RadioButton;
 import android.widget.TextView;
 
 import java.io.BufferedWriter;
@@ -71,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     public void onExportClicked(View view) {
         Cursor cursor = null;
         try {
-            cursor = db.rawQuery("SELECT * FROM " + AccelerometerColumns.TABLE_NAME, null);
+            cursor = db.rawQuery("SELECT * FROM " + timeXYZColumns.TABLE_ACCELEROMETER, null);
         } catch (SQLiteException e) {
             alertDialog("No Data found");
             return;
