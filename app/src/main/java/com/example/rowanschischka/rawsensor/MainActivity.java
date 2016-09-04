@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     public void onExportClicked(View view) {
         Cursor cursor = null;
         try {
-            cursor = db.rawQuery("SELECT * FROM " + timeXYZColumns.TABLE_ACCELEROMETER, null);
+            cursor = db.rawQuery("SELECT * FROM " + XYZColumns.TABLE_ACCELEROMETER, null);
         } catch (SQLiteException e) {
             alertDialog("No Data found");
             return;

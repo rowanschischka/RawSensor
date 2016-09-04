@@ -5,7 +5,7 @@ import android.provider.BaseColumns;
 /**
  * Created by rowanschischka on 15/08/16.
  */
-public abstract class timeXYZColumns implements BaseColumns {
+public abstract class XYZColumns implements BaseColumns {
     public static final String TABLE_ACCELEROMETER = "accelerometerData";
     public static final String TABLE_ROTATION_RAW = "rotationRawData";
     public static final String TABLE_ROTATION_ADJUSTED = "rotationAdjusteedData";
