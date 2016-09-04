@@ -40,7 +40,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_sensor);
-        //sensor
+        //nitialize sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         mRotationVectorSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_ROTATION_VECTOR);
@@ -51,11 +51,11 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         mRotationMatrix[4] = 1;
         mRotationMatrix[8] = 1;
         mRotationMatrix[12] = 1;
-        //database
+        //nitialize database
         dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
         tv = (TextView) findViewById(R.id.text_recording);
-        //GPS
+        //nitialize GPS
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListener = new LocationListener() {
             public void onLocationChanged(Location location) {
@@ -77,14 +77,16 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     }
 
     protected void onLocationChanged(Location location) {
-        float accuracy = location.getAccuracy();
-        double altitude = location.getAltitude();
-        long elapsedTime = location.getElapsedRealtimeNanos();
-        double latitude = location.getLatitude();
-        double longitutde = location.getLongitude();
-        String provider = location.getProvider();
-        float speed = location.getSpeed();
-        long time = location.getTime();
+        ContentValues values = new ContentValues();
+        values.put(LocationColumns.accuracy, location.getAccuracy());
+        values.put(LocationColumns.altitude, location.getAltitude());
+        values.put(LocationColumns.elapsedTime, location.getElapsedRealtimeNanos());
+        values.put(LocationColumns.latitude, location.getLatitude());
+        values.put(LocationColumns.longitutde, location.getLongitude());
+        values.put(LocationColumns.provider, location.getProvider());
+        values.put(LocationColumns.speed, location.getSpeed());
+        values.put(LocationColumns.time, location.getTime());
+        db.insert(LocationColumns.TABLE_NAME, null, values);
     }
 
     protected void onPause() {
