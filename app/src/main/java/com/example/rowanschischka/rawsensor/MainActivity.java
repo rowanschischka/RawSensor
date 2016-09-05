@@ -16,12 +16,16 @@ import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.nio.channels.FileChannel;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -55,18 +59,37 @@ public class MainActivity extends AppCompatActivity {
 
     public void onDestroyClicked(View view) {
         dbHelper.dropTable(db);
-        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-        alertDialog.setTitle("");
-        alertDialog.setMessage("Data Deleted");
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-        alertDialog.show();
+        Toast.makeText(this, R.string.db_delete, Toast.LENGTH_SHORT).show();
     }
 
     public void onExportClicked(View view) {
+        try {
+            File sd = Environment.getExternalStorageDirectory();
+            File data = Environment.getDataDirectory();
+
+            if (sd.canWrite()) {
+                String packageName = this.getPackageName();
+
+                String text = "db: "+db.getPath()+"\npackageName: "+packageName;
+                Toast.makeText(this, text, Toast.LENGTH_LONG).show();
+                /*String currentDBPath = "//data//"+packageName+"//databases//"+db.getPath();
+                String backupDBPath = "{database name}";
+                File currentDB = new File(data, currentDBPath);
+                File backupDB = new File(sd, backupDBPath);
+
+                if (currentDB.exists()) {
+                    FileChannel src = new FileInputStream(currentDB).getChannel();
+                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
+                    dst.transferFrom(src, 0, src.size());
+                    src.close();
+                    dst.close();
+                }*/
+            }
+        } catch (Exception e) {
+        }
+    }
+
+    public void dataToCSV(View view) {
         Cursor cursor;
         try {
             cursor = db.rawQuery("SELECT * FROM " + SensorColumns.TABLE_NAME, null);

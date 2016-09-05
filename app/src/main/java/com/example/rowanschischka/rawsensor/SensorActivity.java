@@ -1,7 +1,9 @@
 package com.example.rowanschischka.rawsensor;
 
+import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -12,22 +14,22 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class SensorActivity extends AppCompatActivity implements SensorEventListener {
-    private static final String TAG = SensorActivity.class.getSimpleName();
+    //private static final String TAG = SensorActivity.class.getSimpleName();
     //GPS
     LocationManager locationManager;
     //UI
     private TextView sensorTV, gpsTV;
-    //data
-    private DbHelper dbHelper;
     private SQLiteDatabase db;
     //sensor
     private SensorManager sensorManager = null;
-    private Sensor rotationVectorSensor, accelerationSensor, geomagneticSensor, gyroSensor;
+    private Sensor rotationVectorSensor, accelerationSensor, gyroSensor;//geomagneticSensor
     private int restartCounter, gpsCounter, accelerometerCounter, rotationCounter, magneticFieldCounter, gyroCounter;
 
     @Override
@@ -50,12 +52,11 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
                 Sensor.TYPE_ROTATION_VECTOR);
         accelerationSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_ACCELEROMETER);
-        geomagneticSensor = sensorManager.getDefaultSensor(
-                Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+        //geomagneticSensor = sensorManager.getDefaultSensor(Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
         gyroSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_GYROSCOPE);
         //initialize database
-        dbHelper = new DbHelper(this);
+        DbHelper dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
         //initialize GPS
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -74,7 +75,13 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
             }
         };
         // Register the listener with the Location Manager to receive location updates
-        locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        int permissionCheck = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.WRITE_CALENDAR);
+        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
+        } else {
+            Toast.makeText(this, "You have not enabled GPS permission to this app", Toast.LENGTH_LONG).show();
+        }
     }
 
     protected void onPause() {
@@ -86,7 +93,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         //Toast.makeText(this, "Recording resumed", Toast.LENGTH_SHORT).show();
         sensorManager.registerListener(this, rotationVectorSensor, 20000);
         sensorManager.registerListener(this, accelerationSensor, 20000);
-        sensorManager.registerListener(this, geomagneticSensor, 20000);
+        //sensorManager.registerListener(this, geomagneticSensor, 20000);
         sensorManager.registerListener(this, gyroSensor, 20000);
         restartCounter++;
         super.onResume();
@@ -170,7 +177,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         values.put(AccuracyColumns.COLUMN_NAME_SENSOR_TYPE, type);
         values.put(AccuracyColumns.COLUMN_NAME_TIME, time);
         db.insert(AccuracyColumns.TABLE_NAME, null, values);
-        Log.d(TAG, "Inserted Accuracy change");
+        //Log.d(TAG, "Inserted Accuracy change");
     }
 }
 
