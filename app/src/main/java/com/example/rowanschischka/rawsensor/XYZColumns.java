@@ -7,8 +7,8 @@ import android.provider.BaseColumns;
  */
 public abstract class XYZColumns implements BaseColumns {
     public static final String TABLE_ACCELEROMETER = "accelerometerData";
-    public static final String TABLE_ROTATION_RAW = "rotationRawData";
-    public static final String TABLE_ROTATION_ADJUSTED = "rotationAdjusteedData";
+    public static final String TABLE_ROTATION_VECTOR = "rotationRawData";
+    public static final String TABLE_MAGNETIC = "magneticAdjusteedData";
     public static final String COLUMN_NAME_X = "x";
     public static final String COLUMN_NAME_Y = "y";
     public static final String COLUMN_NAME_Z = "z";

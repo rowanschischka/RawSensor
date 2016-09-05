@@ -29,13 +29,13 @@ public class DbHelper extends SQLiteOpenHelper {
                 XYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
                 XYZColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
                 XYZColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
-        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_ROTATION_RAW + " (" +
+        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_ROTATION_VECTOR + " (" +
                 XYZColumns._ID + " INTEGER PRIMARY KEY," +
                 XYZColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
                 XYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
                 XYZColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
                 XYZColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
-        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_ROTATION_ADJUSTED + " (" +
+        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_MAGNETIC + " (" +
                 XYZColumns._ID + " INTEGER PRIMARY KEY," +
                 XYZColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
                 XYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
@@ -69,8 +69,8 @@ public class DbHelper extends SQLiteOpenHelper {
     public void dropTable(SQLiteDatabase db) {
         db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_ACCELEROMETER);
         db.execSQL("DROP TABLE IF EXISTS " + AccuracyColumns.TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_ROTATION_RAW);
-        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_ROTATION_ADJUSTED);
+        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_ROTATION_VECTOR);
+        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_MAGNETIC);
         db.execSQL("DROP TABLE IF EXISTS " + LocationColumns.TABLE_NAME);
         onCreate(db);
     }
