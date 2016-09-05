@@ -26,8 +26,8 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     private SQLiteDatabase db;
     //sensor
     private SensorManager sensorManager = null;
-    private Sensor mRotationVectorSensor, mAccelerationSensor, mGeomagneticSensor;
-    private TextView tv;
+    private Sensor mRotationVectorSensor, mAccelerationSensor, mGeomagneticSensor, mGyroscopeSensor;
+    private TextView sensorTV, gpsTV;
     private int restartCounter;
     private int gpsCounter;
     private int accelerometerCounter;
@@ -37,7 +37,10 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        //user interface
         setContentView(R.layout.activity_sensor);
+        sensorTV = (TextView) findViewById(R.id.text_recording);
+        gpsTV = (TextView) findViewById(R.id.gps_recording);
         //counters
         restartCounter = 0;
         gpsCounter = 0;
@@ -52,10 +55,11 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
                 Sensor.TYPE_ACCELEROMETER);
         mGeomagneticSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
+        mGyroscopeSensor = sensorManager.getDefaultSensor(
+                Sensor.TYPE_GYROSCOPE);
         //initialize database
         dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
-        tv = (TextView) findViewById(R.id.text_recording);
         //initialize GPS
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
         LocationListener locationListener = new LocationListener() {
@@ -76,6 +80,20 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
     }
 
+    protected void onPause() {
+        sensorManager.unregisterListener(this);
+        super.onPause();
+    }
+
+    protected void onResume() {
+        //Toast.makeText(this, "Recording resumed", Toast.LENGTH_SHORT).show();
+        sensorManager.registerListener(this, mRotationVectorSensor, 20000);
+        sensorManager.registerListener(this, mAccelerationSensor, 20000);
+        sensorManager.registerListener(this, mGeomagneticSensor, 20000);
+        sensorManager.registerListener(this, mGyroscopeSensor, 20000);
+        restartCounter++;
+        super.onResume();
+    }
     protected void saveLocationChanged(Location location) {
         ContentValues values = new ContentValues();
         values.put(LocationColumns.accuracy, location.getAccuracy());
@@ -87,22 +105,16 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         values.put(LocationColumns.speed, location.getSpeed());
         values.put(LocationColumns.time, location.getTime());
         db.insert(LocationColumns.TABLE_NAME, null, values);
-        Log.d("LOCATION", LocationColumns.elapsedTime + " speed" + LocationColumns.speed);
+        String text = "GPS" +
+                "\nGPS entries: " + gpsCounter +
+                "\naccuracy " + location.getAccuracy() +
+                "\naltitude " + location.getAltitude() +
+                "\nspeed " + location.getSpeed() +
+                "\ntime " + location.getTime();
+        gpsTV.setText(text);
         gpsCounter++;
     }
 
-    protected void onPause() {
-        sensorManager.unregisterListener(this);
-        super.onPause();
-    }
-
-    protected void onResume() {
-        //Toast.makeText(this, "Recording resumed", Toast.LENGTH_SHORT).show();
-        sensorManager.registerListener(this, mRotationVectorSensor, 20000);
-        sensorManager.registerListener(this, mAccelerationSensor, 20000);
-        restartCounter++;
-        super.onResume();
-    }
 
     @Override
     protected void onDestroy() {
@@ -111,26 +123,29 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            insertXYZ(XYZColumns.TABLE_MAGNETIC, event);
-            magneticFieldCounter++;
-        }
-        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+        switch (event.sensor.getType()) {
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                insertXYZ(XYZColumns.TABLE_MAGNETIC, event);
+                magneticFieldCounter++;
+                break;
+            case Sensor.TYPE_ACCELEROMETER:
             insertXYZ(XYZColumns.TABLE_ACCELEROMETER, event);
             accelerometerCounter++;
-        }
-        if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
+                break;
+            case Sensor.TYPE_ROTATION_VECTOR:
             insertXYZ(XYZColumns.TABLE_ROTATION_VECTOR, event);
             rotationCounter++;
+                break;
+            default:
+                return;
         }
-        String text =
-                "Time: " + event.timestamp +
-                        "Numeber of restarts: " + restartCounter +
-                        "GPS entries: " + gpsCounter +
-                        "Accelerometer entries: " + accelerometerCounter +
-                        "Rotation vector entries: " + rotationCounter +
-                        "Magnetic field counter: " + magneticFieldCounter;
-        tv.setText(text);
+        String text = "SENSORS" +
+                "\nTime: " + event.timestamp +
+                "\nNumeber of restarts: " + restartCounter +
+                "\nAccelerometer entries: " + accelerometerCounter +
+                "\nRotation vector entries: " + rotationCounter +
+                "\nMagnetic field counter: " + magneticFieldCounter;
+        sensorTV.setText(text);
     }
 
     private void insertXYZ(String tableName, SensorEvent event) {
