@@ -23,24 +23,13 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_ACCELEROMETER + " (" +
-                XYZColumns._ID + " INTEGER PRIMARY KEY," +
-                XYZColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
-        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_ROTATION_VECTOR + " (" +
-                XYZColumns._ID + " INTEGER PRIMARY KEY," +
-                XYZColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
-        db.execSQL("CREATE TABLE " + XYZColumns.TABLE_MAGNETIC + " (" +
-                XYZColumns._ID + " INTEGER PRIMARY KEY," +
-                XYZColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
-                XYZColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
+        db.execSQL("CREATE TABLE " + SensorColumns.TABLE_NAME + " (" +
+                SensorColumns._ID + " INTEGER PRIMARY KEY," +
+                SensorColumns.COLUMN_TYPE + INT_TYPE + COMMA_SEP +
+                SensorColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
+                SensorColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
+                SensorColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
+                SensorColumns.COLUMN_NAME_TIME + LONG_TYPE + " )");
         db.execSQL("CREATE TABLE " + AccuracyColumns.TABLE_NAME + " (" +
                 AccuracyColumns._ID + " INTEGER PRIMARY KEY," +
                 AccuracyColumns.COLUMN_NAME_ACCURACY + INT_TYPE + COMMA_SEP +
@@ -67,10 +56,8 @@ public class DbHelper extends SQLiteOpenHelper {
     }
 
     public void dropTable(SQLiteDatabase db) {
-        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_ACCELEROMETER);
+        db.execSQL("DROP TABLE IF EXISTS " + SensorColumns.TABLE_NAME);
         db.execSQL("DROP TABLE IF EXISTS " + AccuracyColumns.TABLE_NAME);
-        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_ROTATION_VECTOR);
-        db.execSQL("DROP TABLE IF EXISTS " + XYZColumns.TABLE_MAGNETIC);
         db.execSQL("DROP TABLE IF EXISTS " + LocationColumns.TABLE_NAME);
         onCreate(db);
     }

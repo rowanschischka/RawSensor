@@ -58,49 +58,38 @@ public class MainActivity extends AppCompatActivity {
         AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
         alertDialog.setTitle("");
         alertDialog.setMessage("Data Deleted");
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
-                    }
-                });
+        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
         alertDialog.show();
     }
 
     public void onExportClicked(View view) {
-        Cursor cursor = null;
+        Cursor cursor;
         try {
-            cursor = db.rawQuery("SELECT * FROM " + XYZColumns.TABLE_ACCELEROMETER, null);
+            cursor = db.rawQuery("SELECT * FROM " + SensorColumns.TABLE_NAME, null);
         } catch (SQLiteException e) {
             alertDialog("No Data found");
             return;
         }
         cursor.moveToFirst();
         boolean success = true;
-
         if (!isExternalStorageWritable()) {
             Log.e("FILE", "external not writable");
         }
-        //File file = new File(Environment.getExternalStorageDirectory().getAbsolutePath());//+"/SensorData"+ SystemClock.currentThreadTimeMillis()+".csv");
-        // Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS), "SensorData"+ SystemClock.currentThreadTimeMillis());
         File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath());
         Log.d("FILE", file.getAbsolutePath());
         try {
-
-            //file.createNewFile();
             if (!file.mkdirs()) {
                 Log.e("FILE", "Directory not created");
-
             }
             PrintWriter out
                     = new PrintWriter(new BufferedWriter(new FileWriter(file.getAbsoluteFile() + "/SensorData" + SystemClock.currentThreadTimeMillis() + ".csv")));
-            // file.createNewFile();
-            //fileWriter = new PrintWriter(file.getAbsoluteFile()+"/SensorData"+ SystemClock.currentThreadTimeMillis()+".csv");
-            //BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
             String[] columnNames = cursor.getColumnNames();
             for (String s : columnNames) {
                 out.write(s + ",");
-                Log.d("NAME", s);
             }
             do {
                 out.write("\n");
@@ -116,7 +105,6 @@ public class MainActivity extends AppCompatActivity {
             success = false;
         }
         cursor.close();
-        dbHelper.dropTable(db);
         if (success) alertDialog("Data saved");
     }
 

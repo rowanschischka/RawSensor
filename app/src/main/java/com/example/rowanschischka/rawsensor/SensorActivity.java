@@ -18,21 +18,17 @@ import android.widget.TextView;
 
 public class SensorActivity extends AppCompatActivity implements SensorEventListener {
     private static final String TAG = SensorActivity.class.getSimpleName();
-    private final float[] mRotationMatrix = new float[16];
     //GPS
     LocationManager locationManager;
+    //UI
+    private TextView sensorTV, gpsTV;
     //data
     private DbHelper dbHelper;
     private SQLiteDatabase db;
     //sensor
     private SensorManager sensorManager = null;
-    private Sensor mRotationVectorSensor, mAccelerationSensor, mGeomagneticSensor, mGyroscopeSensor;
-    private TextView sensorTV, gpsTV;
-    private int restartCounter;
-    private int gpsCounter;
-    private int accelerometerCounter;
-    private int rotationCounter;
-    private int magneticFieldCounter;
+    private Sensor rotationVectorSensor, accelerationSensor, geomagneticSensor, gyroSensor;
+    private int restartCounter, gpsCounter, accelerometerCounter, rotationCounter, magneticFieldCounter, gyroCounter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,15 +43,16 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         accelerometerCounter = 0;
         rotationCounter = 0;
         magneticFieldCounter = 0;
+        gyroCounter = 0;
         //initialize sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        mRotationVectorSensor = sensorManager.getDefaultSensor(
+        rotationVectorSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_ROTATION_VECTOR);
-        mAccelerationSensor = sensorManager.getDefaultSensor(
+        accelerationSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_ACCELEROMETER);
-        mGeomagneticSensor = sensorManager.getDefaultSensor(
+        geomagneticSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_GEOMAGNETIC_ROTATION_VECTOR);
-        mGyroscopeSensor = sensorManager.getDefaultSensor(
+        gyroSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_GYROSCOPE);
         //initialize database
         dbHelper = new DbHelper(this);
@@ -87,13 +84,14 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
 
     protected void onResume() {
         //Toast.makeText(this, "Recording resumed", Toast.LENGTH_SHORT).show();
-        sensorManager.registerListener(this, mRotationVectorSensor, 20000);
-        sensorManager.registerListener(this, mAccelerationSensor, 20000);
-        sensorManager.registerListener(this, mGeomagneticSensor, 20000);
-        sensorManager.registerListener(this, mGyroscopeSensor, 20000);
+        sensorManager.registerListener(this, rotationVectorSensor, 20000);
+        sensorManager.registerListener(this, accelerationSensor, 20000);
+        sensorManager.registerListener(this, geomagneticSensor, 20000);
+        sensorManager.registerListener(this, gyroSensor, 20000);
         restartCounter++;
         super.onResume();
     }
+
     protected void saveLocationChanged(Location location) {
         ContentValues values = new ContentValues();
         values.put(LocationColumns.accuracy, location.getAccuracy());
@@ -125,36 +123,42 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     public void onSensorChanged(SensorEvent event) {
         switch (event.sensor.getType()) {
             case Sensor.TYPE_MAGNETIC_FIELD:
-                insertXYZ(XYZColumns.TABLE_MAGNETIC, event);
+                insertSensor(Sensor.TYPE_MAGNETIC_FIELD, event);
                 magneticFieldCounter++;
                 break;
             case Sensor.TYPE_ACCELEROMETER:
-            insertXYZ(XYZColumns.TABLE_ACCELEROMETER, event);
-            accelerometerCounter++;
+                insertSensor(Sensor.TYPE_ACCELEROMETER, event);
+                accelerometerCounter++;
                 break;
             case Sensor.TYPE_ROTATION_VECTOR:
-            insertXYZ(XYZColumns.TABLE_ROTATION_VECTOR, event);
-            rotationCounter++;
+                insertSensor(Sensor.TYPE_ROTATION_VECTOR, event);
+                rotationCounter++;
+                break;
+            case Sensor.TYPE_GYROSCOPE:
+                insertSensor(Sensor.TYPE_GYROSCOPE, event);
+                gyroCounter++;
                 break;
             default:
                 return;
         }
         String text = "SENSORS" +
                 "\nTime: " + event.timestamp +
-                "\nNumeber of restarts: " + restartCounter +
-                "\nAccelerometer entries: " + accelerometerCounter +
-                "\nRotation vector entries: " + rotationCounter +
-                "\nMagnetic field counter: " + magneticFieldCounter;
+                "\nNumber of restarts: " + restartCounter +
+                "\nAccelerometer [type " + Sensor.TYPE_ACCELEROMETER + "] entries: " + accelerometerCounter +
+                "\nRotation vector [type " + Sensor.TYPE_ROTATION_VECTOR + "] entries: " + rotationCounter +
+                "\nMagnetic field [type " + Sensor.TYPE_MAGNETIC_FIELD + "] counter: " + magneticFieldCounter +
+                "\nGyro [type " + Sensor.TYPE_GYROSCOPE + "] counter: " + gyroCounter;
         sensorTV.setText(text);
     }
 
-    private void insertXYZ(String tableName, SensorEvent event) {
+    private void insertSensor(int type, SensorEvent event) {
         ContentValues values = new ContentValues();
-        values.put(XYZColumns.COLUMN_NAME_X, event.values[0]);
-        values.put(XYZColumns.COLUMN_NAME_Y, event.values[1]);
-        values.put(XYZColumns.COLUMN_NAME_Z, event.values[2]);
-        values.put(XYZColumns.COLUMN_NAME_TIME, event.timestamp);
-        db.insert(tableName, null, values);
+        values.put(SensorColumns.COLUMN_NAME_X, event.values[0]);
+        values.put(SensorColumns.COLUMN_NAME_Y, event.values[1]);
+        values.put(SensorColumns.COLUMN_NAME_Z, event.values[2]);
+        values.put(SensorColumns.COLUMN_NAME_TIME, event.timestamp);
+        values.put(SensorColumns.COLUMN_TYPE, type);
+        db.insert(SensorColumns.TABLE_NAME, null, values);
     }
 
     @Override
