@@ -16,9 +16,7 @@ import android.os.Bundle;
 import android.os.SystemClock;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.widget.TextView;
-import android.widget.Toast;
 
 public class SensorActivity extends AppCompatActivity implements SensorEventListener {
     //private static final String TAG = SensorActivity.class.getSimpleName();
@@ -58,29 +56,27 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         //initialize database
         DbHelper dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
+
         //initialize GPS
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        LocationListener locationListener = new LocationListener() {
-            public void onLocationChanged(Location location) {
-                saveLocationChanged(location);
-            }
-
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-            }
-
-            public void onProviderEnabled(String provider) {
-            }
-
-            public void onProviderDisabled(String provider) {
-            }
-        };
-        // Register the listener with the Location Manager to receive location updates
         int permissionCheck = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.WRITE_CALENDAR);
+                Manifest.permission.ACCESS_FINE_LOCATION);
         if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+            locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+            LocationListener locationListener = new LocationListener() {
+                public void onLocationChanged(Location location) {
+                    saveLocationChanged(location);
+                }
+
+                public void onStatusChanged(String provider, int status, Bundle extras) {
+                }
+
+                public void onProviderEnabled(String provider) {
+                }
+
+                public void onProviderDisabled(String provider) {
+                }
+            };
             locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        } else {
-            Toast.makeText(this, "You have not enabled GPS permission to this app", Toast.LENGTH_LONG).show();
         }
     }
 
