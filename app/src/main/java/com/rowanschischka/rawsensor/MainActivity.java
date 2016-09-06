@@ -1,4 +1,4 @@
-package com.example.rowanschischka.rawsensor;
+package com.rowanschischka.rawsensor;
 
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -6,7 +6,6 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.SystemClock;
@@ -14,6 +13,7 @@ import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,11 +28,6 @@ import java.io.PrintWriter;
 import java.nio.channels.FileChannel;
 
 public class MainActivity extends AppCompatActivity {
-
-    private SensorManager sensorManager;
-    private Sensor sensor;
-    private LinearLayout linearLayout;
-    private int sensorDelay = SensorManager.SENSOR_DELAY_FASTEST;
     private DbHelper dbHelper;
     private SQLiteDatabase db;
 
@@ -40,20 +35,23 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        linearLayout = (LinearLayout) findViewById(R.id.mainLinearLayout);
         dbHelper = new DbHelper(this);
         db = dbHelper.getReadableDatabase();
+        String text = "" +
+                "TYPE_ROTATION_VECTOR = " + Sensor.TYPE_ROTATION_VECTOR +
+                "\nTYPE_ACCELEROMETER = " + Sensor.TYPE_ACCELEROMETER +
+                "\nTYPE_GYROSCOPE = " + Sensor.TYPE_GYROSCOPE;
+        terminal(text);
     }
 
-    private void addTextView(String text) {
-        TextView tv = new TextView(MainActivity.this);
-        tv.setText(text);
-        linearLayout.addView(tv);
+    private void terminal(String text) {
+        TextView tv = (TextView) findViewById(R.id.terminal);
+        tv.setText(text + "\n" + tv.getText());
     }
+
 
     public void onStartButtonClicked(View view) {
         Intent intent = new Intent(MainActivity.this, SensorActivity.class);
-        intent.putExtra("SENSOR_DELAY", sensorDelay);
         startActivity(intent);
     }
 
@@ -63,29 +61,56 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void onExportClicked(View view) {
-        try {
+        File data = Environment.getDataDirectory();
+        String dbPath = db.getPath();
+        terminal("Internal database path: " + dbPath);
+        File internalDBFile = new File(dbPath);
+        if (internalDBFile.exists()) {
+            //get filename from user
+            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
+            //AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
+            alertDialog.setTitle("Database Export");
+            alertDialog.setMessage("Enter file name");
+            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+                    new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+            final EditText outFileNameEditText = new EditText(MainActivity.this);
+            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.MATCH_PARENT);
+            outFileNameEditText.setLayoutParams(lp);
+            alertDialog.setView(outFileNameEditText);
+            
+            alertDialog.show();
+            //file name to write to
+            String outFileName = outFileNameEditText.getText().toString();
+            //default to internal storage
+            String outFilePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath();
+            //File to write to
+            File outFile = new File(outFilePath, outFileName);
             File sd = Environment.getExternalStorageDirectory();
-            File data = Environment.getDataDirectory();
-
             if (sd.canWrite()) {
-                String packageName = this.getPackageName();
-
-                String text = "db: "+db.getPath()+"\npackageName: "+packageName;
-                Toast.makeText(this, text, Toast.LENGTH_LONG).show();
-                /*String currentDBPath = "//data//"+packageName+"//databases//"+db.getPath();
-                String backupDBPath = "{database name}";
-                File currentDB = new File(data, currentDBPath);
-                File backupDB = new File(sd, backupDBPath);
-
-                if (currentDB.exists()) {
-                    FileChannel src = new FileInputStream(currentDB).getChannel();
-                    FileChannel dst = new FileOutputStream(backupDB).getChannel();
-                    dst.transferFrom(src, 0, src.size());
-                    src.close();
-                    dst.close();
-                }*/
+                outFile = new File(sd, outFileName + ".db");
+                terminal("Writing to " + outFile.getAbsolutePath());
+            } else {
+                terminal("unable to access SD card, writing to " + outFile.getAbsolutePath());
             }
-        } catch (Exception e) {
+            try {
+
+                FileChannel src = new FileInputStream(internalDBFile).getChannel();
+                FileChannel dst = new FileOutputStream(outFile).getChannel();
+                dst.transferFrom(src, 0, src.size());
+                src.close();
+                dst.close();
+                terminal("***Database export complete***");
+            } catch (Exception e) {
+                terminal("Database export failed");
+            }
+        } else {
+            terminal("Database does not exist");
         }
     }
 

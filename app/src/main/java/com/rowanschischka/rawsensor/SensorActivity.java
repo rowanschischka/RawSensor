@@ -1,4 +1,4 @@
-package com.example.rowanschischka.rawsensor;
+package com.rowanschischka.rawsensor;
 
 import android.Manifest;
 import android.content.ContentValues;
@@ -115,7 +115,6 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         gpsTV.setText(text);
         gpsCounter++;
     }
-
 
     @Override
     protected void onDestroy() {

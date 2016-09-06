@@ -1,4 +1,4 @@
-package com.example.rowanschischka.rawsensor;
+package com.rowanschischka.rawsensor;
 
 import android.provider.BaseColumns;
 
