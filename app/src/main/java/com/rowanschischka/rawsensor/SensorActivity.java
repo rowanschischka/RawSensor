@@ -22,7 +22,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     LocationManager locationManager;
     float[] mGravity;
     float[] mGeomagnetic;
-    float[] orientation;
+    float[] mGravityAveraged;
     //UI
     private TextView sensorTV, gpsTV;
     private SQLiteDatabase db;
@@ -52,7 +52,6 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         gyroSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_GYROSCOPE);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
-        orientation = new float[3];
         //initialize database
         DbHelper dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -70,7 +69,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     @Override
     protected void onResume() {
         //sensors
-        sensorManager.registerListener(this, accelerationSensor, 20000);
+        sensorManager.registerListener(this, accelerationSensor, 5000);
         sensorManager.registerListener(this, magnetometer, 20000);
         //GPS
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -95,6 +94,13 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
             case Sensor.TYPE_ACCELEROMETER:
                 insertSensor("ACCELEROMETER", event.values, event.timestamp);
                 mGravity = event.values;
+                if (mGravityAveraged == null) {
+                    mGravityAveraged = new float[4];
+                }
+                mGravityAveraged[0] += event.values[0];
+                mGravityAveraged[1] += event.values[1];
+                mGravityAveraged[2] += event.values[2];
+                mGravityAveraged[3]++;
                 break;
             case Sensor.TYPE_ROTATION_VECTOR:
                 //insertSensor("TYPE_ROTATION_VECTOR", event.values, event.timestamp);
@@ -104,31 +110,36 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
             default:
                 return;
         }
-        String text = "SENSORS" +
-                "\nTime: " + (event.timestamp - startTime);
-
         if (mGravity != null && mGeomagnetic != null) {
-            float R[] = new float[9];
-            float I[] = new float[9];
-            boolean success = SensorManager.getRotationMatrix(R, I, mGravity, mGeomagnetic);
-            if (success) {
-                orientation = new float[3];
-                SensorManager.getOrientation(R, orientation);
-                insertSensor("RADIANS", orientation, event.timestamp);
-                float[] inDegrees = {
-                        (float) Math.toDegrees(orientation[0]),
-                        (float) Math.toDegrees(orientation[1]),
-                        (float) Math.toDegrees(orientation[2])};
-                insertSensor("DEGREES", inDegrees, event.timestamp);
-            }
+            float[] averageGravity = new float[3];
+            averageGravity[0] = mGravityAveraged[0] / mGravityAveraged[3];
+            averageGravity[1] = mGravityAveraged[1] / mGravityAveraged[3];
+            averageGravity[2] = mGravityAveraged[2] / mGravityAveraged[3];
+            gravityCalculations(mGravity, event.timestamp, "RAW");
+            gravityCalculations(averageGravity, event.timestamp, "AV");
             mGravity = null;
             mGeomagnetic = null;
+            mGravityAveraged = null;
         }
-        text += "\n" +
-                "\nAzimut " + Math.toDegrees(orientation[0]) +
-                "\nPitch " + Math.toDegrees(orientation[1]) +
-                "\nRoll " + Math.toDegrees(orientation[2]);
+        String text = "RECORDING" +
+                "\nTime: " + (event.timestamp - startTime);
         sensorTV.setText(text);
+    }
+
+    private void gravityCalculations(float[] gravity, long time, String name) {
+        float R[] = new float[9];
+        float I[] = new float[9];
+        boolean success = SensorManager.getRotationMatrix(R, I, gravity, mGeomagnetic);
+        if (success) {
+            float[] orientation = new float[3];
+            SensorManager.getOrientation(R, orientation);
+            insertSensor("RADIANS" + name, orientation, time);
+            float[] inDegrees = {
+                    (float) Math.toDegrees(orientation[0]),
+                    (float) Math.toDegrees(orientation[1]),
+                    (float) Math.toDegrees(orientation[2])};
+            insertSensor("DEGREES" + name, inDegrees, time);
+        }
     }
 
     private void insertSensor(String type, float[] data, long time) {
