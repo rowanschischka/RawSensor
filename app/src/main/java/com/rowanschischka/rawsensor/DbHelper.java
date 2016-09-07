@@ -5,6 +5,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
 /**
+ * Database helper
  * Created by rowanschischka on 15/08/16.
  */
 public class DbHelper extends SQLiteOpenHelper {
@@ -25,7 +26,7 @@ public class DbHelper extends SQLiteOpenHelper {
     public void onCreate(SQLiteDatabase db) {
         db.execSQL("CREATE TABLE " + SensorColumns.TABLE_NAME + " (" +
                 SensorColumns._ID + " INTEGER PRIMARY KEY," +
-                SensorColumns.COLUMN_TYPE + INT_TYPE + COMMA_SEP +
+                SensorColumns.COLUMN_TYPE + TEXT_TYPE + COMMA_SEP +
                 SensorColumns.COLUMN_NAME_X + FLOAT_TYPE + COMMA_SEP +
                 SensorColumns.COLUMN_NAME_Y + FLOAT_TYPE + COMMA_SEP +
                 SensorColumns.COLUMN_NAME_Z + FLOAT_TYPE + COMMA_SEP +
