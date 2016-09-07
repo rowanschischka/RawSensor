@@ -6,9 +6,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteException;
 import android.hardware.Sensor;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.os.SystemClock;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -20,16 +20,15 @@ import android.widget.Toast;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.nio.channels.FileChannel;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements AlertDialog.OnClickListener {
+    private static final String TAG = "SENSOR_RECORDER";
     private DbHelper dbHelper;
     private SQLiteDatabase db;
+    private EditText outFileNameEditText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,6 +46,8 @@ public class MainActivity extends AppCompatActivity {
     private void terminal(String text) {
         TextView tv = (TextView) findViewById(R.id.terminal);
         tv.setText(text + "\n" + tv.getText());
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+        Log.i(TAG, text);
     }
 
 
@@ -57,121 +58,124 @@ public class MainActivity extends AppCompatActivity {
 
     public void onDestroyClicked(View view) {
         dbHelper.dropTable(db);
-        Toast.makeText(this, R.string.db_delete, Toast.LENGTH_SHORT).show();
+        terminal("database data deleted");
     }
 
     public void onExportClicked(View view) {
-        File data = Environment.getDataDirectory();
-        String dbPath = db.getPath();
-        terminal("Internal database path: " + dbPath);
-        File internalDBFile = new File(dbPath);
-        if (internalDBFile.exists()) {
-            //get filename from user
-            AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-            //AlertDialog.Builder alertDialog = new AlertDialog.Builder(MainActivity.this);
-            alertDialog.setTitle("Database Export");
-            alertDialog.setMessage("Enter file name");
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                    new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            dialog.dismiss();
-                        }
-                    });
-            final EditText outFileNameEditText = new EditText(MainActivity.this);
-            LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.MATCH_PARENT);
-            outFileNameEditText.setLayoutParams(lp);
-            alertDialog.setView(outFileNameEditText);
-            
-            alertDialog.show();
-            //file name to write to
-            String outFileName = outFileNameEditText.getText().toString();
+        //get filename from user
+        AlertDialog.Builder alertBuilder = new AlertDialog.Builder(this);
+        alertBuilder.setTitle("Database Export");
+        alertBuilder.setMessage("Enter file name");
+        alertBuilder.setPositiveButton(R.string.save, this);
+        outFileNameEditText = new EditText(MainActivity.this);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.MATCH_PARENT);
+        outFileNameEditText.setLayoutParams(lp);
+        alertBuilder.setView(outFileNameEditText);
+        alertBuilder.create().show();
+    }
+
+    @Override
+    public void onClick(DialogInterface dialog, int which) {
+        switch (which) {
+            // int which = -2
+            case DialogInterface.BUTTON_NEGATIVE:
+                dialog.dismiss();
+                break;
+            case DialogInterface.BUTTON_NEUTRAL:
+                // int which = -3
+                dialog.dismiss();
+                break;
+            case DialogInterface.BUTTON_POSITIVE:
+                // int which = -1
+                //file name to write to
+                String outFileName = outFileNameEditText.getText().toString();
+                //default to internal storage
+                new DataExporterAsync().execute(outFileName);
+                dialog.dismiss();
+                break;
+        }
+    }
+
+    private class DataExporterAsync extends AsyncTask<String, String, String> {
+        @Override
+        public String doInBackground(String... outFilenames) {
+            String accuracySQL = "SELECT * FROM " + AccuracyColumns.TABLE_NAME;
+            String result = dataToCSV(accuracySQL, outFilenames[0] + "_sensor_accuracy.csv");
+            publishProgress("accuracy table " + result);
+            String locationSQL = "SELECT * FROM " + LocationColumns.TABLE_NAME;
+            result = dataToCSV(locationSQL, outFilenames[0] + "_location_data.csv");
+            publishProgress("location table " + result);
+            String sensorSQL = "SELECT * FROM " + SensorColumns.TABLE_NAME;
+            result = dataToCSV(sensorSQL, outFilenames[0] + "_sensor_data.csv");
+            publishProgress("sensor table " + result);
+
+            return outFilenames[0];
+        }
+
+        @Override
+        protected void onProgressUpdate(String... progress) {
+            terminal(progress[0]);
+        }
+
+        @Override
+        protected void onPostExecute(String outFileName) {
+        }
+
+        private String dataToCSV(String sqlQuery, String outFileName) {
             //default to internal storage
             String outFilePath = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath();
             //File to write to
             File outFile = new File(outFilePath, outFileName);
             File sd = Environment.getExternalStorageDirectory();
             if (sd.canWrite()) {
-                outFile = new File(sd, outFileName + ".db");
-                terminal("Writing to " + outFile.getAbsolutePath());
-            } else {
-                terminal("unable to access SD card, writing to " + outFile.getAbsolutePath());
+                outFile = new File(sd, outFileName);
             }
+            Log.i(TAG, "writing to " + outFile.getAbsolutePath());
+            Cursor cursor;
             try {
-
-                FileChannel src = new FileInputStream(internalDBFile).getChannel();
-                FileChannel dst = new FileOutputStream(outFile).getChannel();
-                dst.transferFrom(src, 0, src.size());
-                src.close();
-                dst.close();
-                terminal("***Database export complete***");
-            } catch (Exception e) {
-                terminal("Database export failed");
+                cursor = db.rawQuery(sqlQuery, null);
+            } catch (SQLiteException e) {
+                return "SQL query failed";
             }
-        } else {
-            terminal("Database does not exist");
-        }
-    }
-
-    public void dataToCSV(View view) {
-        Cursor cursor;
-        try {
-            cursor = db.rawQuery("SELECT * FROM " + SensorColumns.TABLE_NAME, null);
-        } catch (SQLiteException e) {
-            alertDialog("No Data found");
-            return;
-        }
-        cursor.moveToFirst();
-        boolean success = true;
-        if (!isExternalStorageWritable()) {
-            Log.e("FILE", "external not writable");
-        }
-        File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS).getAbsolutePath());
-        Log.d("FILE", file.getAbsolutePath());
-        try {
-            if (!file.mkdirs()) {
-                Log.e("FILE", "Directory not created");
+            if (cursor.getCount() <= 0) {
+                return "Table empty";
             }
-            PrintWriter out
-                    = new PrintWriter(new BufferedWriter(new FileWriter(file.getAbsoluteFile() + "/SensorData" + SystemClock.currentThreadTimeMillis() + ".csv")));
-            String[] columnNames = cursor.getColumnNames();
-            for (String s : columnNames) {
-                out.write(s + ",");
-            }
-            do {
-                out.write("\n");
+            cursor.moveToFirst();
+            try {
+                outFile.createNewFile();
+                PrintWriter out
+                        = new PrintWriter(new BufferedWriter(new FileWriter(outFile.getAbsoluteFile())));
+                String[] columnNames = cursor.getColumnNames();
                 for (int i = 0; i < columnNames.length; i++) {
-                    out.write(cursor.getString(i) + ",");
-                }
-            } while (cursor.moveToNext());
-            out.flush();
-            out.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-            Log.e("WRITE", e.getMessage());
-            success = false;
-        }
-        cursor.close();
-        if (success) alertDialog("Data saved");
-    }
-
-    private void alertDialog(String message) {
-        AlertDialog alertDialog = new AlertDialog.Builder(MainActivity.this).create();
-        alertDialog.setTitle("");
-        alertDialog.setMessage(message);
-        alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
-                new DialogInterface.OnClickListener() {
-                    public void onClick(DialogInterface dialog, int which) {
-                        dialog.dismiss();
+                    if (i < columnNames.length - 1) {
+                        out.write(columnNames[i] + ",");
+                    } else {
+                        out.write(columnNames[i]);
                     }
-                });
-        alertDialog.show();
+                }
+                do {
+                    out.write("\n");
+                    for (int i = 0; i < columnNames.length; i++) {
+                        if (i < columnNames.length - 1) {
+                            out.write(cursor.getString(i) + ",");
+                        } else {
+                            out.write(cursor.getString(i));
+                        }
+                    }
+                } while (cursor.moveToNext());
+                Log.e(TAG, "file write failed 2");
+                out.flush();
+                out.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+                Log.e(TAG, "file write failed");
+                return "file write failed";
+            }
+            cursor.close();
+            return "file writen to " + outFile.getAbsolutePath();
+        }
     }
 
-    /* Checks if external storage is available for read and write */
-    public boolean isExternalStorageWritable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state);
-    }
 }

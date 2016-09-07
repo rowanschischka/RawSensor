@@ -1,9 +1,7 @@
 package com.rowanschischka.rawsensor;
 
-import android.Manifest;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.pm.PackageManager;
 import android.database.sqlite.SQLiteDatabase;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
@@ -14,21 +12,62 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.SystemClock;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
 import android.widget.TextView;
 
 public class SensorActivity extends AppCompatActivity implements SensorEventListener {
-    //private static final String TAG = SensorActivity.class.getSimpleName();
+    long startTime;
     //GPS
     LocationManager locationManager;
     //UI
     private TextView sensorTV, gpsTV;
     private SQLiteDatabase db;
+    LocationListener locationListener = new LocationListener() {
+        @Override
+        public void onLocationChanged(Location location) {
+            checkStartTime();
+            long time = location.getElapsedRealtimeNanos() - startTime;
+            ContentValues values = new ContentValues();
+            values.put(LocationColumns.accuracy, location.getAccuracy());
+            values.put(LocationColumns.altitude, location.getAltitude());
+            values.put(LocationColumns.elapsedTime, location.getElapsedRealtimeNanos());
+            values.put(LocationColumns.latitude, location.getLatitude());
+            values.put(LocationColumns.longitutde, location.getLongitude());
+            values.put(LocationColumns.provider, location.getProvider());
+            values.put(LocationColumns.speed, location.getSpeed());
+            values.put(LocationColumns.time, time);
+            db.insert(LocationColumns.TABLE_NAME, null, values);
+            String text = "GPS" +
+                    "\nGPS entries: " + gpsCounter +
+                    "\naccuracy " + location.getAccuracy() +
+                    "\naltitude " + location.getAltitude() +
+                    "\nspeed " + location.getSpeed() +
+                    "\ntime " + time;
+            gpsTV.setText(text);
+            gpsCounter++;
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+        }
+    };
     //sensor
     private SensorManager sensorManager = null;
     private Sensor rotationVectorSensor, accelerationSensor, gyroSensor;//geomagneticSensor
     private int restartCounter, gpsCounter, accelerometerCounter, rotationCounter, magneticFieldCounter, gyroCounter;
+
+    public void onClickStop(View view) {
+        finish();
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +83,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         rotationCounter = 0;
         magneticFieldCounter = 0;
         gyroCounter = 0;
+        startTime = 0;
         //initialize sensor
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         rotationVectorSensor = sensorManager.getDefaultSensor(
@@ -58,62 +98,32 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         db = dbHelper.getWritableDatabase();
 
         //initialize GPS
-        int permissionCheck = ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION);
-        if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
-            locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-            LocationListener locationListener = new LocationListener() {
-                public void onLocationChanged(Location location) {
-                    saveLocationChanged(location);
-                }
+        //int permissionCheck = ContextCompat.checkSelfPermission(this,
+        //        Manifest.permission.ACCESS_FINE_LOCATION);
+        //if (permissionCheck == PackageManager.PERMISSION_GRANTED) {
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
 
-                public void onStatusChanged(String provider, int status, Bundle extras) {
-                }
-
-                public void onProviderEnabled(String provider) {
-                }
-
-                public void onProviderDisabled(String provider) {
-                }
-            };
-            locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 0, 0, locationListener);
-        }
+        //}
     }
 
+    @Override
     protected void onPause() {
         sensorManager.unregisterListener(this);
+        locationManager.removeUpdates(locationListener);
         super.onPause();
     }
 
+    @Override
     protected void onResume() {
-        //Toast.makeText(this, "Recording resumed", Toast.LENGTH_SHORT).show();
+        //sensors
         sensorManager.registerListener(this, rotationVectorSensor, 20000);
         sensorManager.registerListener(this, accelerationSensor, 20000);
-        //sensorManager.registerListener(this, geomagneticSensor, 20000);
         sensorManager.registerListener(this, gyroSensor, 20000);
+        //GPS
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, locationListener);
+        //counter
         restartCounter++;
         super.onResume();
-    }
-
-    protected void saveLocationChanged(Location location) {
-        ContentValues values = new ContentValues();
-        values.put(LocationColumns.accuracy, location.getAccuracy());
-        values.put(LocationColumns.altitude, location.getAltitude());
-        values.put(LocationColumns.elapsedTime, location.getElapsedRealtimeNanos());
-        values.put(LocationColumns.latitude, location.getLatitude());
-        values.put(LocationColumns.longitutde, location.getLongitude());
-        values.put(LocationColumns.provider, location.getProvider());
-        values.put(LocationColumns.speed, location.getSpeed());
-        values.put(LocationColumns.time, location.getTime());
-        db.insert(LocationColumns.TABLE_NAME, null, values);
-        String text = "GPS" +
-                "\nGPS entries: " + gpsCounter +
-                "\naccuracy " + location.getAccuracy() +
-                "\naltitude " + location.getAltitude() +
-                "\nspeed " + location.getSpeed() +
-                "\ntime " + location.getTime();
-        gpsTV.setText(text);
-        gpsCounter++;
     }
 
     @Override
@@ -121,8 +131,15 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         super.onDestroy();
     }
 
+    private void checkStartTime() {
+        if (startTime == 0) {
+            startTime = SystemClock.elapsedRealtimeNanos();
+        }
+    }
+
     @Override
     public void onSensorChanged(SensorEvent event) {
+        checkStartTime();
         switch (event.sensor.getType()) {
             case Sensor.TYPE_MAGNETIC_FIELD:
                 insertSensor(Sensor.TYPE_MAGNETIC_FIELD, event);
@@ -144,7 +161,8 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
                 return;
         }
         String text = "SENSORS" +
-                "\nTime: " + event.timestamp +
+                "\nStart time " + startTime +
+                "\nTime: " + (event.timestamp - startTime) +
                 "\nNumber of restarts: " + restartCounter +
                 "\nAccelerometer [type " + Sensor.TYPE_ACCELEROMETER + "] entries: " + accelerometerCounter +
                 "\nRotation vector [type " + Sensor.TYPE_ROTATION_VECTOR + "] entries: " + rotationCounter +
@@ -158,21 +176,21 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         values.put(SensorColumns.COLUMN_NAME_X, event.values[0]);
         values.put(SensorColumns.COLUMN_NAME_Y, event.values[1]);
         values.put(SensorColumns.COLUMN_NAME_Z, event.values[2]);
-        values.put(SensorColumns.COLUMN_NAME_TIME, event.timestamp);
+        values.put(SensorColumns.COLUMN_NAME_TIME, event.timestamp - startTime);
         values.put(SensorColumns.COLUMN_TYPE, type);
         db.insert(SensorColumns.TABLE_NAME, null, values);
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
-        long time = SystemClock.uptimeMillis();
+        checkStartTime();
+        long time = SystemClock.elapsedRealtimeNanos() - startTime;
         int type = sensor.getType();
         ContentValues values = new ContentValues();
         values.put(AccuracyColumns.COLUMN_NAME_ACCURACY, accuracy);
         values.put(AccuracyColumns.COLUMN_NAME_SENSOR_TYPE, type);
         values.put(AccuracyColumns.COLUMN_NAME_TIME, time);
         db.insert(AccuracyColumns.TABLE_NAME, null, values);
-        //Log.d(TAG, "Inserted Accuracy change");
     }
 }
 
