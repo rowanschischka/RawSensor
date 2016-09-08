@@ -16,13 +16,20 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.TextView;
 
+import java.util.LinkedList;
+
 public class SensorActivity extends AppCompatActivity implements SensorEventListener, LocationListener {
+    //float[] mGravity;
+    final int SAMPLE_SIZE = 5;
     long startTime;
     //GPS
     LocationManager locationManager;
-    float[] mGravity;
-    float[] mGeomagnetic;
-    float[] mGravityAveraged;
+    //float[] mGeomagnetic
+    LinkedList<Float[]> mGravityAveraged;
+    LinkedList<Float[]> mGeomagneticAveraged;
+    int gravityAvIndex = 0;
+    int magneticAvIndex = 0;
+    float[] gravity = new float[3];
     //UI
     private TextView sensorTV, gpsTV;
     private SQLiteDatabase db;
@@ -52,6 +59,8 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         gyroSensor = sensorManager.getDefaultSensor(
                 Sensor.TYPE_GYROSCOPE);
         magnetometer = sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD);
+        mGravityAveraged = new LinkedList<Float[]>();
+        mGeomagneticAveraged = new LinkedList<Float[]>();
         //initialize database
         DbHelper dbHelper = new DbHelper(this);
         db = dbHelper.getWritableDatabase();
@@ -69,7 +78,7 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
     @Override
     protected void onResume() {
         //sensors
-        sensorManager.registerListener(this, accelerationSensor, 5000);
+        sensorManager.registerListener(this, accelerationSensor, 20000);
         sensorManager.registerListener(this, magnetometer, 20000);
         //GPS
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
@@ -92,44 +101,49 @@ public class SensorActivity extends AppCompatActivity implements SensorEventList
         checkStartTime();
         switch (event.sensor.getType()) {
             case Sensor.TYPE_ACCELEROMETER:
+                mGravityAveraged.offer(new Float[]{event.values[0], event.values[1], event.values[2]});
                 insertSensor("ACCELEROMETER", event.values, event.timestamp);
-                mGravity = event.values;
-                if (mGravityAveraged == null) {
-                    mGravityAveraged = new float[4];
-                }
-                mGravityAveraged[0] += event.values[0];
-                mGravityAveraged[1] += event.values[1];
-                mGravityAveraged[2] += event.values[2];
-                mGravityAveraged[3]++;
-                break;
-            case Sensor.TYPE_ROTATION_VECTOR:
-                //insertSensor("TYPE_ROTATION_VECTOR", event.values, event.timestamp);
+                gravity = event.values;
                 break;
             case Sensor.TYPE_MAGNETIC_FIELD:
-                mGeomagnetic = event.values;
+                magneticAvIndex++;
+                mGeomagneticAveraged.offer(new Float[]{event.values[0], event.values[1], event.values[2]});
+                if (gravity != null) {
+                    if (magneticAvIndex >= SAMPLE_SIZE) {
+                        float[] averageGravity = average(mGravityAveraged);
+                        float[] averageMagnet = average(mGeomagneticAveraged);
+                        gravityCalculations(averageGravity, averageMagnet, event.timestamp, "AV");
+                        mGravityAveraged.remove();
+                        mGeomagneticAveraged.remove();
+                    }
+                    gravityCalculations(gravity, event.values, event.timestamp, "RAW");
+                }
             default:
                 return;
         }
-        if (mGravity != null && mGeomagnetic != null) {
-            float[] averageGravity = new float[3];
-            averageGravity[0] = mGravityAveraged[0] / mGravityAveraged[3];
-            averageGravity[1] = mGravityAveraged[1] / mGravityAveraged[3];
-            averageGravity[2] = mGravityAveraged[2] / mGravityAveraged[3];
-            gravityCalculations(mGravity, event.timestamp, "RAW");
-            gravityCalculations(averageGravity, event.timestamp, "AV");
-            mGravity = null;
-            mGeomagnetic = null;
-            mGravityAveraged = null;
-        }
+
         String text = "RECORDING" +
                 "\nTime: " + (event.timestamp - startTime);
         sensorTV.setText(text);
     }
 
-    private void gravityCalculations(float[] gravity, long time, String name) {
+    private float[] average(LinkedList<Float[]> data) {
+        float[] result = new float[3];
+        for (Float[] d : data) {
+            result[0] += d[0];
+            result[1] += d[1];
+            result[2] += d[2];
+        }
+        result[0] /= SAMPLE_SIZE;
+        result[1] /= SAMPLE_SIZE;
+        result[2] /= SAMPLE_SIZE;
+        return result;
+    }
+
+    private void gravityCalculations(float[] gravity, float[] magnet, long time, String name) {
         float R[] = new float[9];
         float I[] = new float[9];
-        boolean success = SensorManager.getRotationMatrix(R, I, gravity, mGeomagnetic);
+        boolean success = SensorManager.getRotationMatrix(R, I, gravity, magnet);
         if (success) {
             float[] orientation = new float[3];
             SensorManager.getOrientation(R, orientation);
