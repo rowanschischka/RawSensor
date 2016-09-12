@@ -1,32 +1,5 @@
 <resources>
     <string name="app_name">Raw Sensor</string>
-    <string name="SENSOR_DELAY_FASTEST">SENSOR_DELAY_FASTEST</string>
-    <string name="SENSOR_DELAY_GAME">SENSOR_DELAY_GAME</string>
-    <string name="SENSOR_DELAY_NORMAL">SENSOR_DELAY_NORMAL</string>
-    <string name="SENSOR_DELAY_UI">SENSOR_DELAY_UI</string>
-    <string name="ChooseSensor">Choose sensor settings/properties</string>
-    <string name="start_button">Start Recording Sensor Data</string>
-    <string name="sensor_delay_label">Sensor delay: </string>
-    <string name="x">X: </string>
-    <string name="y">Y: </string>
-    <string name="z">Z: </string>
-    <string name="save">SAVE</string>
-    <string name="stop">Stop</string>
-    <string name="db_delete">Data Deleted</string>
-    <string name="accelerometer_label">Accelerometer</string>
-    <string name="delete_db_button">Delete Data</string>
-    <string name="export_database">Export Data</string>
-    <string name="settings">Settings</string>
-    <string name="processing">Processing...</string>
-    <string name="test_delay">Benchmark delay settings</string>
-    <string name="recording">Recording...</string>
-    <string name="sensor_service_connected">Sensors recording</string>
-    <string name="sensor_service_disconnected">Sensor disconnected</string>
-    <string name="album_name">SensorRecordings</string>
-    <string-array name="recording_array">
-        <item>Recording</item>
-        <item>Recording.</item>
-        <item>Recording..</item>
-        <item>Recording...</item>
-    </string-array>
+    <string name="start_button">START</string>
+    <string name="stop_button">STOP</string>
 </resources>

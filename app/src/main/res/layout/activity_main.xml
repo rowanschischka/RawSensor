@@ -9,25 +9,17 @@
     tools:context="com.rowanschischka.rawsensor.MainActivity">
 
     <Button
+        android:id="@+id/start"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onStartButtonClicked"
+        android:onClick="startRecording"
         android:text="@string/start_button" />
 
     <Button
+        android:id="@+id/stop"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:onClick="onDestroyClicked"
-        android:text="@string/delete_db_button" />
-
-    <Button
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:onClick="onExportClicked"
-        android:text="@string/export_database" />
-
-    <TextView
-        android:id="@+id/terminal"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:onClick="stopRecording"
+        android:text="@string/stop_button"
+        android:visibility="invisible" />
 </LinearLayout>

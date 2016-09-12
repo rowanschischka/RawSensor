@@ -21,11 +21,7 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name=".SensorActivity"
-            android:configChanges="orientation|screenSize"
-            android:screenOrientation="portrait"></activity>
-
+        <service android:name=".SensorToCSVService" />
     </application>
 
 </manifest>
