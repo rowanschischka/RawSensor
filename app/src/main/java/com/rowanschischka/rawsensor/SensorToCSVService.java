@@ -27,6 +27,17 @@ import java.util.Date;
 import java.util.List;
 
 public class SensorToCSVService extends Service implements SensorEventListener, LocationListener {
+    public static final String ACCELEROMETER = "ACCELEROMETER";
+    public static final String MAGNETOMETER = "MAGNETOMETER";
+    public static final String[] SENSOR_COLUMNS = {
+            "title",
+            "time",
+            "x",
+            "y",
+            "z"
+    };
+    public static final String GPS = "GPS";
+    public static final String[] GPS_COLUMNS = {"title", "time", "speed", "altitude", "null"};
     private static final String LOG = "SENSORACTIVITY";
     private static final String SEPARATOR = ",";
     long startTime;
@@ -126,11 +137,11 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         long time = event.timestamp - startTime;
         switch (event.sensor.getType()) {
             case Sensor.TYPE_ACCELEROMETER:
-                print("ACCELEROMETER", time, event.values[0], event.values[1], event.values[2]);
+                print(ACCELEROMETER, time, event.values[0], event.values[1], event.values[2]);
                 accCounter++;
                 break;
             case Sensor.TYPE_MAGNETIC_FIELD:
-                print("MAGNETOMETER", time, event.values[0], event.values[1], event.values[2]);
+                print(MAGNETOMETER, time, event.values[0], event.values[1], event.values[2]);
                 magCounter++;
                 break;
             default:
@@ -146,7 +157,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
     public void onLocationChanged(Location location) {
         checkStartTime();
         long time = location.getElapsedRealtimeNanos() - startTime;
-        print("GPS", time, location.getSpeed(), (float) location.getAltitude(), -1);
+        print(GPS, time, location.getSpeed(), (float) location.getAltitude(), -1);
         locationCounter++;
     }
 
