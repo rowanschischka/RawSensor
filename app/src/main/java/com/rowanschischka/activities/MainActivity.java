@@ -1,9 +1,11 @@
-package com.rowanschischka.rawsensor;
+package com.rowanschischka.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
+
+import com.rowanschischka.data.SensorToCSVService;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";

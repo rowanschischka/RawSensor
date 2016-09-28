@@ -1,4 +1,4 @@
-package com.rowanschischka.rawsensor;
+package com.rowanschischka.data;
 
 import android.app.Service;
 import android.content.Context;
@@ -27,19 +27,7 @@ import java.util.Date;
 import java.util.List;
 
 public class SensorToCSVService extends Service implements SensorEventListener, LocationListener {
-    public static final String ACCELEROMETER = "ACCELEROMETER";
-    public static final String MAGNETOMETER = "MAGNETOMETER";
-    public static final String[] SENSOR_COLUMNS = {
-            "title",
-            "time",
-            "x",
-            "y",
-            "z"
-    };
-    public static final String GPS = "GPS";
-    public static final String[] GPS_COLUMNS = {"title", "time", "speed", "altitude", "null"};
-    private static final String LOG = "SENSORACTIVITY";
-    private static final String SEPARATOR = ",";
+    private static final String TAG = "SensorToCSVService";
     long startTime;
     //GPS
     private LocationManager locationManager;
@@ -67,7 +55,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         List<Sensor> all = sensorManager.getSensorList(Sensor.TYPE_ALL);
         for (Sensor s : all) {
-            Log.i(LOG, s.getName());
+            Log.i(TAG, s.getName());
         }
         //initialize GPS
         locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
@@ -75,7 +63,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         //File to write to
         Date date = Calendar.getInstance().getTime();
         String filename = date.toString() + ".csv";
-        Log.i(LOG, "saving to " + filename);
+        Log.i(TAG, "saving to " + filename);
         File outFile = new File(outFilePath, filename);
         try {
             outFile.createNewFile();
@@ -97,7 +85,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
             text += "\naccelerometer intervals = " + (time / (float) accCounter / 1000000F);
         if (magCounter > 0)
             text += "\nmagnetometer intervals = " + (time / (float) magCounter / 1000000F);
-        Log.i(LOG, text);
+        Log.i(TAG, text);
         Toast.makeText(this, text, Toast.LENGTH_LONG).show();
         printWriter.flush();
         printWriter.close();
@@ -111,8 +99,8 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), SensorManager.SENSOR_DELAY_GAME);//SensorManager.SENSOR_DELAY_FASTEST);
         //GPS
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-        Log.i(LOG, "service started");
-        printWriter.println("TYPE" + SEPARATOR + "TIME" + SEPARATOR + "0" + SEPARATOR + "1" + SEPARATOR + "2");
+        Log.i(TAG, "service started");
+        //printWriter.println("TYPE" + SEPARATOR + "TIME" + SEPARATOR + "0" + SEPARATOR + "1" + SEPARATOR + "2");
         return START_STICKY;
     }
 
@@ -122,30 +110,13 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         }
     }
 
-    private void print(String columnName, long time, float v0, float v1, float v2) {
-        printWriter.println(
-                columnName + SEPARATOR +
-                        time + SEPARATOR +
-                        v0 + SEPARATOR +
-                        v1 + SEPARATOR +
-                        v2);
-    }
-
     @Override
     public void onSensorChanged(SensorEvent event) {
         checkStartTime();
-        long time = event.timestamp - startTime;
-        switch (event.sensor.getType()) {
-            case Sensor.TYPE_ACCELEROMETER:
-                print(ACCELEROMETER, time, event.values[0], event.values[1], event.values[2]);
-                accCounter++;
-                break;
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                print(MAGNETOMETER, time, event.values[0], event.values[1], event.values[2]);
-                magCounter++;
-                break;
-            default:
-                break;
+        long elapsedTime = event.timestamp - startTime;
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER || event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+            String dataRow = DataRow.eventToString(event, elapsedTime);
+            printWriter.println(dataRow);
         }
     }
 
@@ -156,8 +127,10 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
     @Override
     public void onLocationChanged(Location location) {
         checkStartTime();
-        long time = location.getElapsedRealtimeNanos() - startTime;
-        print(GPS, time, location.getSpeed(), (float) location.getAltitude(), -1);
+        long elapsedTime = location.getElapsedRealtimeNanos() - startTime;
+        String dataRow = DataRow.locationToString(location, elapsedTime);
+        printWriter.println(dataRow);
+        //Log.i(TAG, location.getAltitude()+"");
         locationCounter++;
     }
 

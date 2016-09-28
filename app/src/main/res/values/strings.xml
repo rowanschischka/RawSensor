@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Raw Sensor</string>
+    <string name="app_name">Sensor Recorder</string>
     <string name="start_button">START</string>
     <string name="stop_button">STOP</string>
 </resources>
