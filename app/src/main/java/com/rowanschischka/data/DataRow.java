@@ -19,6 +19,7 @@ public class DataRow implements Comparable {
     public static final int MAX_COLUMNS_GPS = 7;
     public static final String TYPE_MAGNETOMETER = "MAGNETOMETER_RAW";
     public static final String TYPE_GPS = "GPS_RAW";
+    public static final String TYPE_ROTATION = "ROTATION";
     private static final int COLUMN_TYPE = 0;
     private static final int COLUMN_TIME = 1;
     private static final int COLUMN_X = 2;
@@ -74,6 +75,20 @@ public class DataRow implements Comparable {
         }
     }
 
+    /**
+     * for entering rotation data
+     *
+     * @param time_
+     * @param angles
+     */
+    public DataRow(long time_, float[] angles) {
+        this.time = time_;
+        this.type = TYPE_ROTATION;
+        this.x = angles[0];
+        this.y = angles[1];
+        this.z = angles[2];
+    }
+
     public DataRow(long time_) {
         this.time = time_;
     }
@@ -84,7 +99,7 @@ public class DataRow implements Comparable {
         headers[COLUMN_TYPE] = "TYPE";
         headers[COLUMN_TIME] = "TIME";
         for (int i = 2; i < headers.length; i++) {
-            headers[i] = String.valueOf(i);
+            headers[i] = "c" + i;
         }
         return getCsvRow(headers);
     }
@@ -141,7 +156,7 @@ public class DataRow implements Comparable {
     @Override
     public String toString() {
         String[] values = null;
-        if (type.equals(TYPE_ACCELEROMETER) || type.equals(TYPE_MAGNETOMETER)) {
+        if (type.equals(TYPE_ACCELEROMETER) || type.equals(TYPE_MAGNETOMETER) || type.equals(TYPE_ROTATION)) {
             values = new String[MAX_COLUMNS_ACCELEROMTER];
             values[COLUMN_TYPE] = type;
             values[COLUMN_TIME] = String.valueOf(getTime());
@@ -167,7 +182,9 @@ public class DataRow implements Comparable {
     }
 
     public void setGpsSpeed(String gpsSpeed) {
-        this.gpsSpeed = Float.parseFloat(gpsSpeed);
+        if (!gpsSpeed.equals("null")) {
+            this.gpsSpeed = Float.parseFloat(gpsSpeed);
+        }
     }
 
     public float getGpsAltitude() {
@@ -175,7 +192,9 @@ public class DataRow implements Comparable {
     }
 
     public void setGpsAltitude(String gpsAltitude) {
-        this.gpsAltitude = Float.parseFloat(gpsAltitude);
+        if (!gpsAltitude.equals("null")) {
+            this.gpsAltitude = Float.parseFloat(gpsAltitude);
+        }
     }
 
     public float getGpsLat() {
@@ -183,7 +202,10 @@ public class DataRow implements Comparable {
     }
 
     public void setGpsLat(String gpsLat) {
-        this.gpsLat = Float.parseFloat(gpsLat);
+        if (!gpsLat.equals("null")) {
+
+            this.gpsLat = Float.parseFloat(gpsLat);
+        }
     }
 
     public float getGpsLong() {
@@ -191,7 +213,10 @@ public class DataRow implements Comparable {
     }
 
     public void setGpsLong(String gpsLong) {
-        this.gpsLong = Float.parseFloat(gpsLong);
+        if (!gpsLong.equals("null")) {
+
+            this.gpsLong = Float.parseFloat(gpsLong);
+        }
     }
 
     public float getPlayAltitude() {
@@ -199,7 +224,9 @@ public class DataRow implements Comparable {
     }
 
     public void setPlayAltitude(String playAltitude) {
-        this.playAltitude = Float.parseFloat(playAltitude);
+        if (!playAltitude.equals("null")) {
+            this.playAltitude = Float.parseFloat(playAltitude);
+        }
     }
 
     public String getType() {
@@ -226,16 +253,32 @@ public class DataRow implements Comparable {
         return x;
     }
 
-    void setX(float x_) {
+    public void setX(float x_) {
         this.x = x_;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public void setY(float y_) {
+        this.y = y_;
     }
 
     public void setY(String y_) {
         this.y = Float.parseFloat(y_);
     }
 
+    public float getZ() {
+        return z;
+    }
+
     public void setZ(String z_) {
         this.z = Float.parseFloat(z_);
+    }
+
+    public void setZ(float z_) {
+        this.z = z_;
     }
     //endregion
 
@@ -251,5 +294,6 @@ public class DataRow implements Comparable {
         }
         return 0;
     }
+
 }
 

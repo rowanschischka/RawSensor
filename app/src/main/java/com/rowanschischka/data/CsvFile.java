@@ -16,7 +16,6 @@ import java.util.Collections;
  * Created by rowanschischka on 26/09/16.
  */
 public class CsvFile {
-    //File file = new File("samsung.csv");
     private static final String TAG = "CsvFile";
 
     public static void writeFile(DataRow[] data, String filePath) {
@@ -25,9 +24,9 @@ public class CsvFile {
             File outputFile = new File(filePath);
             bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
             //write table header
-            bufferedWriter.write(DataRow.getTableHeader());
+            bufferedWriter.write(DataRow.getTableHeader() + "\n");
             for (DataRow dr : data) {
-                bufferedWriter.write(dr.toString());
+                bufferedWriter.write(dr.toString() + "\n");
             }
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
@@ -47,7 +46,8 @@ public class CsvFile {
         try {
             bufferedReader = new BufferedReader(new FileReader(inputFile));
             String line;
-            Log.i(TAG, bufferedReader.readLine());
+            //discard header
+            line = bufferedReader.readLine();
             while ((line = bufferedReader.readLine()) != null) {
                 DataRow dr = new DataRow(line);
                 data.add(dr);

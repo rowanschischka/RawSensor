@@ -29,6 +29,7 @@ import java.util.List;
 public class SensorToCSVService extends Service implements SensorEventListener, LocationListener {
     private static final String TAG = "SensorToCSVService";
     long startTime;
+    float[] gravity = null;
     //GPS
     private LocationManager locationManager;
     //sensor
@@ -101,6 +102,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         Log.i(TAG, "service started");
         //printWriter.println("TYPE" + SEPARATOR + "TIME" + SEPARATOR + "0" + SEPARATOR + "1" + SEPARATOR + "2");
+        printWriter.println(DataRow.getTableHeader());
         return START_STICKY;
     }
 
@@ -117,6 +119,13 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER || event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             String dataRow = DataRow.eventToString(event, elapsedTime);
             printWriter.println(dataRow);
+            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+                gravity = event.values;
+            } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+                if (gravity != null) {
+
+                }
+            }
         }
     }
 
