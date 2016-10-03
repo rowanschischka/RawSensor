@@ -29,7 +29,6 @@ import java.util.List;
 public class SensorToCSVService extends Service implements SensorEventListener, LocationListener {
     private static final String TAG = "SensorToCSVService";
     long startTime;
-    float[] gravity = null;
     //GPS
     private LocationManager locationManager;
     //sensor
@@ -52,7 +51,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         magCounter = 0;
         accCounter = 0;
         locationCounter = 0;
-        //list all sensors
+        //list all sensors to log
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         List<Sensor> all = sensorManager.getSensorList(Sensor.TYPE_ALL);
         for (Sensor s : all) {
@@ -101,7 +100,6 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         //GPS
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         Log.i(TAG, "service started");
-        //printWriter.println("TYPE" + SEPARATOR + "TIME" + SEPARATOR + "0" + SEPARATOR + "1" + SEPARATOR + "2");
         printWriter.println(DataRow.getTableHeader());
         return START_STICKY;
     }
@@ -118,14 +116,8 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         long elapsedTime = event.timestamp - startTime;
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER || event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
             String dataRow = DataRow.eventToString(event, elapsedTime);
+            Log.i(TAG, dataRow);
             printWriter.println(dataRow);
-            if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
-                gravity = event.values;
-            } else if (event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-                if (gravity != null) {
-
-                }
-            }
         }
     }
 
@@ -138,8 +130,8 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         checkStartTime();
         long elapsedTime = location.getElapsedRealtimeNanos() - startTime;
         String dataRow = DataRow.locationToString(location, elapsedTime);
+        Log.i(TAG, dataRow);
         printWriter.println(dataRow);
-        //Log.i(TAG, location.getAltitude()+"");
         locationCounter++;
     }
 

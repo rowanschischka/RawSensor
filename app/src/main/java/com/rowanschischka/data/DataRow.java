@@ -17,7 +17,7 @@ public class DataRow implements Comparable {
     public static final int MAX_COLUMNS_ACCELEROMTER = 5;
     public static final int MAX_COLUMNS_MAGNETOMETER = 5;
     public static final int MAX_COLUMNS_GPS = 7;
-    public static final String TYPE_MAGNETOMETER = "MAGNETOMETER_RAW";
+    public static final String TYPE_MAGNETOMETER_RAW = "MAGNETOMETER_RAW";
     public static final String TYPE_GPS = "GPS_RAW";
     public static final String TYPE_ROTATION = "ROTATION";
     private static final int COLUMN_TYPE = 0;
@@ -60,7 +60,7 @@ public class DataRow implements Comparable {
                 setY(data[COLUMN_Y]);
                 setZ(data[COLUMN_Z]);
                 break;
-            case TYPE_MAGNETOMETER:
+            case TYPE_MAGNETOMETER_RAW:
                 setX(data[COLUMN_X]);
                 setY(data[COLUMN_Y]);
                 setZ(data[COLUMN_Z]);
@@ -121,7 +121,7 @@ public class DataRow implements Comparable {
         if (sensorType == Sensor.TYPE_ACCELEROMETER)
             return TYPE_ACCELEROMETER;
         else if (sensorType == Sensor.TYPE_MAGNETIC_FIELD)
-            return TYPE_MAGNETOMETER;
+            return TYPE_MAGNETOMETER_RAW;
         return null;
     }
 
@@ -149,6 +149,7 @@ public class DataRow implements Comparable {
         values[COLUMN_GPS_ALT] = String.valueOf(location.getAltitude());
         values[COLUMN_GPS_LAT] = String.valueOf(location.getLatitude());
         values[COLUMN_GPS_LONG] = String.valueOf(location.getLongitude());
+        values[COLUMN_GPS_SPEED] = String.valueOf(location.getSpeed());
         String result = getCsvRow(values);
         return result;
     }
@@ -156,7 +157,7 @@ public class DataRow implements Comparable {
     @Override
     public String toString() {
         String[] values = null;
-        if (type.equals(TYPE_ACCELEROMETER) || type.equals(TYPE_MAGNETOMETER) || type.equals(TYPE_ROTATION)) {
+        if (type.equals(TYPE_ACCELEROMETER) || type.equals(TYPE_MAGNETOMETER_RAW) || type.equals(TYPE_ROTATION)) {
             values = new String[MAX_COLUMNS_ACCELEROMTER];
             values[COLUMN_TYPE] = type;
             values[COLUMN_TIME] = String.valueOf(getTime());
@@ -261,24 +262,24 @@ public class DataRow implements Comparable {
         return y;
     }
 
-    public void setY(float y_) {
-        this.y = y_;
-    }
-
     public void setY(String y_) {
         this.y = Float.parseFloat(y_);
+    }
+
+    public void setY(float y_) {
+        this.y = y_;
     }
 
     public float getZ() {
         return z;
     }
 
-    public void setZ(String z_) {
-        this.z = Float.parseFloat(z_);
-    }
-
     public void setZ(float z_) {
         this.z = z_;
+    }
+
+    public void setZ(String z_) {
+        this.z = Float.parseFloat(z_);
     }
     //endregion
 

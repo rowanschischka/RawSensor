@@ -39,14 +39,14 @@ public class DataAnalysis {
             current = rawData[i];
             //smooth data
             smoothedData[i] = current;
-            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER) || current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
+            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW) || current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
                 float[] prev = null;
                 if (current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
                     if (previousAccelerometer != null) {
                         prev = previousAccelerometer;
                     }
                     previousAccelerometer = new float[]{current.getX(), current.getY(), current.getZ()};
-                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER)) {
+                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW)) {
                     if (previousMagnetometer != null) {
                         prev = previousMagnetometer;
                     }
@@ -82,10 +82,10 @@ public class DataAnalysis {
         DataRow current;
         for (int i = 0; i < data.length; i++) {
             current = data[i];
-            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER) || current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
+            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW) || current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
                 if (current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
                     gravity = new float[]{current.getX(), current.getY(), current.getZ()};
-                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER)) {
+                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW)) {
                     if (gravity != null) {
                         float[] magnet = new float[]{current.getX(), current.getY(), current.getZ()};
                         float[] angles = SensorMathFunctions.calculateAngleRadians(gravity, magnet);
