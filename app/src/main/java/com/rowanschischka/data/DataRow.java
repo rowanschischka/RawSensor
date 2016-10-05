@@ -6,6 +6,7 @@ package com.rowanschischka.data;
 
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
+import android.hardware.SensorManager;
 import android.location.Location;
 
 /**
@@ -13,13 +14,20 @@ import android.location.Location;
  */
 public class DataRow implements Comparable {
     //region static values
-    public static final String TYPE_ACCELEROMETER = "ACCELEROMETER_RAW";
+    public static final String TYPE_ACCELEROMETER_RAW = "ACCELEROMETER_RAW";
+    public static final String TYPE_ACCELEROMETER_LOWPASS_FILTERED = "ACCELEROMETER_LOWPASS_FILTERED";
+    public static final String TYPE_GRAVITY = "TYPE_GRAVITY";
+    public static final String TYPE_LINEAR_ACCELERATION = "TYPE_LINEAR_ACCELERATION";
     public static final int MAX_COLUMNS_ACCELEROMTER = 5;
     public static final int MAX_COLUMNS_MAGNETOMETER = 5;
     public static final int MAX_COLUMNS_GPS = 7;
     public static final String TYPE_MAGNETOMETER_RAW = "MAGNETOMETER_RAW";
+    public static final String TYPE_MAGNETOMETER_HIGHPASS = "TYPE_MAGNETOMETER_HIGHPASS";
+    public static final String TYPE_MAGNETOMETER_LOWPASS = "TYPE_MAGNETOMETER_LOWPASS";
+    public static final String TYPE_ACCELEROMETER_VECTOR_LENGTH = "ACCELEROMETER_VECTOR_LENGTH";
     public static final String TYPE_GPS = "GPS_RAW";
     public static final String TYPE_ROTATION = "ROTATION";
+    public static final int SENSOR_RATE = SensorManager.SENSOR_DELAY_GAME;
     private static final int COLUMN_TYPE = 0;
     private static final int COLUMN_TIME = 1;
     private static final int COLUMN_X = 2;
@@ -31,12 +39,15 @@ public class DataRow implements Comparable {
     private static final int COLUMN_GPS_LONG = 5;
     private static final int COLUMN_PLAY_ALT = 6;
     private static final int COLUMN_ACCURACY = 2;
+    private static final float COLUMN_VECTOR_LENGTH = 2;
     //endregion
     //region DataRow data variables
+    //TODO: decrease the crazy number of these
     private String type;
     private long time;
     private float x = -1;
     private float y = -1;
+    private float vectorlength = -1;
     private float z = -1;
     private float gpsSpeed = -1;
     private float gpsAltitude = -1;
@@ -55,7 +66,7 @@ public class DataRow implements Comparable {
         setTime(data[COLUMN_TIME]);
         setType(data[COLUMN_TYPE]);
         switch (data[COLUMN_TYPE]) {
-            case TYPE_ACCELEROMETER:
+            case TYPE_ACCELEROMETER_RAW:
                 setX(data[COLUMN_X]);
                 setY(data[COLUMN_Y]);
                 setZ(data[COLUMN_Z]);
@@ -72,6 +83,9 @@ public class DataRow implements Comparable {
                 setGpsSpeed(data[COLUMN_GPS_SPEED]);
                 setPlayAltitude(data[COLUMN_PLAY_ALT]);
                 break;
+            case TYPE_ACCELEROMETER_VECTOR_LENGTH:
+                //TODO: add vector length type
+                //TODO: change all the variables above to be just column1,column2, etc
         }
     }
 
@@ -79,20 +93,21 @@ public class DataRow implements Comparable {
      * for entering rotation data
      *
      * @param time_
-     * @param angles
+     * @param vector
      */
-    public DataRow(long time_, float[] angles) {
+    public DataRow(String type, long time_, float[] vector) {
         this.time = time_;
-        this.type = TYPE_ROTATION;
-        this.x = angles[0];
-        this.y = angles[1];
-        this.z = angles[2];
+        this.type = type;
+        this.x = vector[0];
+        this.y = vector[1];
+        this.z = vector[2];
     }
 
-    public DataRow(long time_) {
-        this.time = time_;
-    }
-
+    /*
+        public DataRow(long time_) {
+            this.time = time_;
+        }
+    */
     public static String getTableHeader() {
         //GPS has more columns
         String[] headers = new String[MAX_COLUMNS_GPS];
@@ -119,7 +134,7 @@ public class DataRow implements Comparable {
 
     public static String sensorTypeToString(int sensorType) {
         if (sensorType == Sensor.TYPE_ACCELEROMETER)
-            return TYPE_ACCELEROMETER;
+            return TYPE_ACCELEROMETER_RAW;
         else if (sensorType == Sensor.TYPE_MAGNETIC_FIELD)
             return TYPE_MAGNETOMETER_RAW;
         return null;
@@ -154,17 +169,18 @@ public class DataRow implements Comparable {
         return result;
     }
 
+    public float[] getVector() {
+        float[] vector = new float[3];
+        vector[0] = this.getX();
+        vector[1] = this.getY();
+        vector[2] = this.getZ();
+        return vector;
+    }
+
     @Override
     public String toString() {
         String[] values = null;
-        if (type.equals(TYPE_ACCELEROMETER) || type.equals(TYPE_MAGNETOMETER_RAW) || type.equals(TYPE_ROTATION)) {
-            values = new String[MAX_COLUMNS_ACCELEROMTER];
-            values[COLUMN_TYPE] = type;
-            values[COLUMN_TIME] = String.valueOf(getTime());
-            values[COLUMN_X] = String.valueOf(x);
-            values[COLUMN_Y] = String.valueOf(y);
-            values[COLUMN_Z] = String.valueOf(z);
-        } else if (type.equals(TYPE_GPS)) {
+        if (type.equals(TYPE_GPS)) {
             values = new String[MAX_COLUMNS_GPS];
             values[COLUMN_TYPE] = type;
             values[COLUMN_TIME] = String.valueOf(getTime());
@@ -172,6 +188,13 @@ public class DataRow implements Comparable {
             values[COLUMN_GPS_ALT] = String.valueOf(gpsAltitude);
             values[COLUMN_GPS_LAT] = String.valueOf(gpsLat);
             values[COLUMN_GPS_LONG] = String.valueOf(gpsLong);
+        } else {
+            values = new String[MAX_COLUMNS_ACCELEROMTER];
+            values[COLUMN_TYPE] = type;
+            values[COLUMN_TIME] = String.valueOf(getTime());
+            values[COLUMN_X] = String.valueOf(x);
+            values[COLUMN_Y] = String.valueOf(y);
+            values[COLUMN_Z] = String.valueOf(z);
         }
         String result = getCsvRow(values);
         return result;
@@ -262,24 +285,24 @@ public class DataRow implements Comparable {
         return y;
     }
 
-    public void setY(String y_) {
-        this.y = Float.parseFloat(y_);
-    }
-
     public void setY(float y_) {
         this.y = y_;
+    }
+
+    public void setY(String y_) {
+        this.y = Float.parseFloat(y_);
     }
 
     public float getZ() {
         return z;
     }
 
-    public void setZ(float z_) {
-        this.z = z_;
-    }
-
     public void setZ(String z_) {
         this.z = Float.parseFloat(z_);
+    }
+
+    public void setZ(float z_) {
+        this.z = z_;
     }
     //endregion
 

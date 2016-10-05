@@ -7,96 +7,110 @@ import com.rowanschischka.data.SensorMathFunctions;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.ArrayList;
 
 /**
  * Created by rowanschischka on 29/09/16.
  */
 public class DataAnalysis {
+    private static String filePath = " no file";
+    private static float alpha = 0.9f;
+
     public static void main(String[] args) {
         BufferedReader inputReader = new BufferedReader(new InputStreamReader(System.in));
-        String filePath = " no file";
         try {
             filePath = inputReader.readLine();
             if (filePath.isEmpty()) {
                 //default value
-                filePath = "/Users/rowanschischka/sensorData/rotationTest.csv";
+                filePath = "/Users/rowanschischka/sensorData/gordonton.road/raw.csv";
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
         System.out.println("getting file\n" + filePath);
         DataRow[] rawData = CsvFile.readFile(filePath);
-        DataRow[] smoothedData = new DataRow[rawData.length];
         System.out.println(rawData.length + " rows of data");
 
-        float smoothingFactor = 60f;
-        float[] previousAccelerometer = null;
-        float[] previousMagnetometer = null;
+        //data to be collected
+        DataRow[] gravityDataSet = new DataRow[rawData.length];
+        DataRow[] linearAccelerationDataSet = new DataRow[rawData.length];
+        DataRow[] magnetLowPassDataSet = new DataRow[rawData.length];
+        DataRow[] magnetHighPassDataSet = new DataRow[rawData.length];
+        DataRow[] anglesDataSet = new DataRow[rawData.length];
+
+        float[] prevGravity = new float[3];
+        float[] prevMagnetLowPass = new float[3];
+        //float[] linearAcceleration;
+        //float[] magnetHighPass;
+        float[] prevAngle = new float[]{0f, 0f, 0f};
+        long maxTime = 0;
         DataRow current;
         //run through data in time order
         for (int i = 0; i < rawData.length; i++) {
             current = rawData[i];
-            //smooth data
-            smoothedData[i] = current;
-            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW) || current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
-                float[] prev = null;
-                if (current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
-                    if (previousAccelerometer != null) {
-                        prev = previousAccelerometer;
-                    }
-                    previousAccelerometer = new float[]{current.getX(), current.getY(), current.getZ()};
-                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW)) {
-                    if (previousMagnetometer != null) {
-                        prev = previousMagnetometer;
-                    }
-                    previousMagnetometer = new float[]{current.getX(), current.getY(), current.getZ()};
-                }
-                if (prev != null) {
-                    float[] smoothed = SensorMathFunctions.smoothingFilter(
-                            current.getX(),
-                            current.getY(),
-                            current.getZ(),
-                            prev[0],
-                            prev[1],
-                            prev[2],
-                            smoothingFactor);
-                    smoothedData[i].setX(smoothed[0]);
-                    smoothedData[i].setY(smoothed[1]);
-                    smoothedData[i].setZ(smoothed[2]);
-                }
-            } else if (current.getType().equals(DataRow.TYPE_GPS)) {
-                //smoothedData[i] = current;
+            //for stats to STD out
+            if (current.getTime() > maxTime) {
+                maxTime = current.getTime();
             }
-            //create angle table
+            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW) || current.getType().equals(DataRow.TYPE_ACCELEROMETER_RAW)) {
+                if (current.getType().equals(DataRow.TYPE_ACCELEROMETER_RAW)) {
+                    //accelerometer filtered
+                    float[] filteredResult = SensorMathFunctions.lowHighPassFilter(current.getVector(), alpha, prevGravity);
+                    prevGravity = SensorMathFunctions.getLowPass(filteredResult);
+                    //check length
+                    //float length = SensorMathFunctions.getVectorLength(prevGravity);
+                    //if (length > 9.7f && length < 9.9f) {
+                    //gravityDataSet[i] = new DataRow(DataRow.TYPE_GRAVITY, current.getTime(), prevGravity);
+                    // } else {
+
+                    //}
+                    float[] linearAcceleration = SensorMathFunctions.getHighPass(filteredResult);
+                    linearAccelerationDataSet[i] = new DataRow(DataRow.TYPE_LINEAR_ACCELERATION, current.getTime(), linearAcceleration);
+                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW)) {
+                    //filter magnetometer
+                    float[] filteredResult = SensorMathFunctions.lowHighPassFilter(current.getVector(), alpha, prevMagnetLowPass);
+                    prevMagnetLowPass = SensorMathFunctions.getLowPass(filteredResult);
+                    magnetLowPassDataSet[i] = new DataRow(DataRow.TYPE_MAGNETOMETER_LOWPASS, current.getTime(), prevMagnetLowPass);
+                    float[] magnetHighPass = SensorMathFunctions.getHighPass(filteredResult);
+                    magnetHighPassDataSet[i] = new DataRow(DataRow.TYPE_MAGNETOMETER_HIGHPASS, current.getTime(), magnetHighPass);
+                    float[] angles = SensorMathFunctions.calculateAngleDegrees(prevGravity, prevMagnetLowPass);
+                    //ADJUSTMENT
+                    if (angles != null) {
+                        angles[1] += 80f;
+                        float[] filteredAngle = SensorMathFunctions.lowHighPassFilter(angles, alpha, prevAngle);
+                        prevAngle = SensorMathFunctions.getLowPass(filteredAngle);
+                        anglesDataSet[i] = new DataRow(DataRow.TYPE_ROTATION, current.getTime(), prevAngle);
+                    }
+                }
+            }
         }
-        CsvFile.writeFile(smoothedData, filePath + ".smoothedData.csv");
-        calculateAngles(rawData, filePath + ".raw");
-        calculateAngles(smoothedData, filePath + ".smoothed");
+        int count;
+        //System.out.println("Writing " + fileWriteName(DataRow.TYPE_GRAVITY));
+        count = CsvFile.writeFile(gravityDataSet, fileWriteName(DataRow.TYPE_GRAVITY));
+        // System.out.println("No. data = " + count);
+
+        //System.out.println("Writing " + fileWriteName(DataRow.TYPE_LINEAR_ACCELERATION));
+        count = CsvFile.writeFile(linearAccelerationDataSet, fileWriteName(DataRow.TYPE_LINEAR_ACCELERATION));
+        //System.out.println("No. data = " + count);
+
+        //System.out.println("Writing " + fileWriteName(DataRow.TYPE_MAGNETOMETER_LOWPASS));
+        count = CsvFile.writeFile(magnetLowPassDataSet, fileWriteName(DataRow.TYPE_MAGNETOMETER_LOWPASS));
+        //System.out.println("No. data = " + count);
+
+        //System.out.println("Writing " + fileWriteName(DataRow.TYPE_MAGNETOMETER_HIGHPASS));
+        count = CsvFile.writeFile(magnetHighPassDataSet, fileWriteName(DataRow.TYPE_MAGNETOMETER_HIGHPASS));
+        //System.out.println("No. data = " + count);
+
+        //System.out.println("Writing " + fileWriteName(DataRow.TYPE_ROTATION));
+        count = CsvFile.writeFile(anglesDataSet, fileWriteName(DataRow.TYPE_ROTATION));
+        //System.out.println("No. data = " + count);
+
+        System.out.println("Time in nanoseconds = " + maxTime);
+        System.out.println("Time in seconds = " + (maxTime / 1000000000l));
+        System.out.println("Alpha = " + alpha);
     }
 
-    private static void calculateAngles(DataRow[] data, String filePath) {
-        //rotation data
-        ArrayList<DataRow> rotationList = new ArrayList<>();
-        float[] gravity = null;
-        DataRow current;
-        for (int i = 0; i < data.length; i++) {
-            current = data[i];
-            if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW) || current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
-                if (current.getType().equals(DataRow.TYPE_ACCELEROMETER)) {
-                    gravity = new float[]{current.getX(), current.getY(), current.getZ()};
-                } else if (current.getType().equals(DataRow.TYPE_MAGNETOMETER_RAW)) {
-                    if (gravity != null) {
-                        float[] magnet = new float[]{current.getX(), current.getY(), current.getZ()};
-                        float[] angles = SensorMathFunctions.calculateAngleRadians(gravity, magnet);
-                        DataRow dr = new DataRow(current.getTime(), angles);
-                        rotationList.add(dr);
-                    }
-                }
-            }
-        }
-        DataRow[] rotationData = new DataRow[rotationList.size()];
-        rotationList.toArray(rotationData);
-        CsvFile.writeFile(rotationData, filePath + ".rotation.csv");
+    private static String fileWriteName(String type) {
+        int a = (int) Math.floor((double) (alpha * 10));
+        return filePath + "." + type + ".csv";
     }
 }

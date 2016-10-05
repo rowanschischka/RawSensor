@@ -21,6 +21,57 @@ public class SensorMathFunctions {
         };
     }
 
+
+    /**
+     * presents the high pass and low pass results of a simple filter
+     *
+     * @param value     current accelerometer sensor event value
+     * @param alpha     alpha is calculated as t / (t + dT)
+     *                  with t, the low-pass filter's time-constant
+     *                  and dT, the event delivery rate
+     * @param prevValue previous prevValue value
+     * @return result first three are prevValue, last three is linear acceleration
+     */
+    public static float[] lowHighPassFilter(float[] value, float alpha, float[] prevValue) {
+        float[] result = new float[6];
+        result[0] = alpha * prevValue[0] + (1 - alpha) * value[0];
+        result[1] = alpha * prevValue[1] + (1 - alpha) * value[1];
+        result[2] = alpha * prevValue[2] + (1 - alpha) * value[2];
+        result[3] = value[0] - result[0];
+        result[4] = value[1] - result[1];
+        result[5] = value[2] - result[2];
+        return result;
+    }
+
+    public static float getVectorLength(float[] value) {
+        return (float) Math.sqrt(value[0] * value[0] + value[1] * value[1] + value[2] * value[2]);
+    }
+
+    public static float[] getAverageFromRange(float[][] range) {
+        float[] average = new float[3];
+        for (float[] data : range) {
+            average[0] += data[0];
+            average[1] += data[1];
+            average[2] += data[2];
+        }
+        average[0] /= range.length;
+        average[1] /= range.length;
+        average[2] /= range.length;
+        return average;
+    }
+
+    public static float[] getLowPass(float[] filteredResult) {
+        return new float[]{
+                filteredResult[0], filteredResult[1], filteredResult[2]};
+
+    }
+
+    public static float[] getHighPass(float[] filteredResult) {
+        return new float[]{
+                filteredResult[3], filteredResult[4], filteredResult[5]};
+
+    }
+
     public static float[] calculateAngleRadians(float[] gravity, float[] magnet) {
         float[] angle = gravityCalculations(gravity, magnet);
         return angle;
@@ -28,6 +79,7 @@ public class SensorMathFunctions {
 
     public static float[] calculateAngleDegrees(float[] gravity, float[] magnet) {
         float[] angle = gravityCalculations(gravity, magnet);
+        if (angle == null) return null;
         angle[0] = (float) Math.toDegrees(angle[0]);
         angle[1] = (float) Math.toDegrees(angle[1]);
         angle[2] = (float) Math.toDegrees(angle[2]);
@@ -42,11 +94,9 @@ public class SensorMathFunctions {
         boolean success = getRotationMatrix(R, I, gravity, magnet);
         if (success) {
             float[] orientation = new float[3];
-//            SensorManager.getOrientation(R, orientation);
             getOrientation(R, orientation);
             return orientation;
         }
-        //investigate these failures
         return null;
     }
 
@@ -157,7 +207,7 @@ public class SensorMathFunctions {
      *                    {@link android.hardware.SensorEvent SensorEvent} of a
      *                    {@link android.hardware.Sensor Sensor} of type
      *                    {@link android.hardware.Sensor#TYPE_ACCELEROMETER
-     *                    TYPE_ACCELEROMETER}.
+     *                    TYPE_ACCELEROMETER_RAW}.
      *                    <p/>
      * @param geomagnetic is an array of 3 floats containing the geomagnetic vector
      *                    expressed in the device's coordinate. You can simply use the

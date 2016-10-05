@@ -18,15 +18,20 @@ import java.util.Collections;
 public class CsvFile {
     private static final String TAG = "CsvFile";
 
-    public static void writeFile(DataRow[] data, String filePath) {
+    public static int writeFile(DataRow[] data, String filePath) {
         BufferedWriter bufferedWriter = null;
+        int count = 0;
         try {
             File outputFile = new File(filePath);
             bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
             //write table header
             bufferedWriter.write(DataRow.getTableHeader() + "\n");
             for (DataRow dr : data) {
-                bufferedWriter.write(dr.toString() + "\n");
+                if (dr != null && !dr.getType().isEmpty()) {
+                    bufferedWriter.write(dr.toString() + "\n");
+                    //System.out.println(dr.toString());
+                    count++;
+                }
             }
         } catch (IOException e) {
             Log.e(TAG, e.getMessage());
@@ -37,6 +42,7 @@ public class CsvFile {
                 Log.e(TAG, e.getMessage());
             }
         }
+        return count;
     }
 
     public static DataRow[] readFile(String filePath) {
