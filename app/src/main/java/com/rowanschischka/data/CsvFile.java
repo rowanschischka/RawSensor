@@ -19,6 +19,7 @@ public class CsvFile {
     private static final String TAG = "CsvFile";
 
     public static int writeFile(DataRow[] data, String filePath) {
+        System.out.println("Writing " + filePath);
         BufferedWriter bufferedWriter = null;
         int count = 0;
         try {
@@ -55,6 +56,7 @@ public class CsvFile {
             //discard header
             line = bufferedReader.readLine();
             while ((line = bufferedReader.readLine()) != null) {
+                //System.out.println(line);
                 DataRow dr = new DataRow(line);
                 data.add(dr);
             }
@@ -75,5 +77,29 @@ public class CsvFile {
             }
         }
         return null;
+    }
+
+    public static int writeFloatData(double[] data, String filePath) {
+        BufferedWriter bufferedWriter = null;
+        int count = 0;
+        try {
+            File outputFile = new File(filePath);
+            bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
+            //write table header
+            bufferedWriter.write(DataRow.getTableHeader() + "\n");
+            for (double dr : data) {
+                bufferedWriter.write(dr + "\n");
+                count++;
+            }
+        } catch (IOException e) {
+            Log.e(TAG, e.getMessage());
+        } finally {
+            try {
+                bufferedWriter.close();
+            } catch (IOException e) {
+                Log.e(TAG, e.getMessage());
+            }
+        }
+        return count;
     }
 }

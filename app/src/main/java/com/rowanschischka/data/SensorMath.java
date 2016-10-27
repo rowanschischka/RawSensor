@@ -5,12 +5,35 @@ import android.hardware.GeomagneticField;
 /**
  * Created by rowanschischka on 28/09/16.
  */
-public class SensorMathFunctions {
+public class SensorMath {
+    public static final int AXIS_X = 1;
+    public static final int AXIS_Y = 2;
+    public static final int AXIS_Z = 3;
     private static final String TAG = "SENSOR MATHS";
+    private static final float[] mTempMatrix = new float[16];
 
     public static float smoothingFilter(float currentValue, float previousValue, float smoothing) {
         currentValue += (previousValue - currentValue) / smoothing;
         return currentValue;
+    }
+
+    public static float[] getChauvenet(float[] input, double deviationLimit, float[][] window) {
+        float[] average = getAverage(window);
+        double stdDev = getStdDeviation(window, average);
+        double distance = getDistance(input, average);
+        if (distance < deviationLimit) {
+            return input;
+        }
+        return average;
+    }
+
+    public static double getStdDeviation(float[][] window, float[] average) {
+        double stdDev = 0;
+        for (float[] d : window) {
+            stdDev += Math.pow(getDistance(average, d), 2);
+        }
+        stdDev /= window.length;
+        return stdDev;
     }
 
     public static float[] smoothingFilter(float x1, float y1, float z1, float x2, float y2, float z2, float smoothing) {
@@ -20,7 +43,6 @@ public class SensorMathFunctions {
                 smoothingFilter(z1, z2, smoothing)
         };
     }
-
 
     /**
      * presents the high pass and low pass results of a simple filter
@@ -47,7 +69,19 @@ public class SensorMathFunctions {
         return (float) Math.sqrt(value[0] * value[0] + value[1] * value[1] + value[2] * value[2]);
     }
 
-    public static float[] getAverageFromRange(float[][] range) {
+    public static double getDistance(float[] v1, float[] v2) {
+        float x = v1[0] - v2[0];
+        float y = v1[1] - v2[1];
+        float z = v1[2] - v2[2];
+        x *= x;
+        y *= y;
+        z *= z;
+        float dSqaured = x + y + z;
+        double distance = Math.sqrt(dSqaured);
+        return distance;
+    }
+
+    public static float[] getAverage(float[][] range) {
         float[] average = new float[3];
         for (float[] data : range) {
             average[0] += data[0];
@@ -98,6 +132,63 @@ public class SensorMathFunctions {
             return orientation;
         }
         return null;
+    }
+
+    public static void getRotationMatrixFromVector(float[] R, float[] rotationVector) {
+
+        float q0;
+        float q1 = rotationVector[0];
+        float q2 = rotationVector[1];
+        float q3 = rotationVector[2];
+
+        if (rotationVector.length >= 4) {
+            q0 = rotationVector[3];
+        } else {
+            q0 = 1 - q1 * q1 - q2 * q2 - q3 * q3;
+            q0 = (q0 > 0) ? (float) Math.sqrt(q0) : 0;
+        }
+
+        float sq_q1 = 2 * q1 * q1;
+        float sq_q2 = 2 * q2 * q2;
+        float sq_q3 = 2 * q3 * q3;
+        float q1_q2 = 2 * q1 * q2;
+        float q3_q0 = 2 * q3 * q0;
+        float q1_q3 = 2 * q1 * q3;
+        float q2_q0 = 2 * q2 * q0;
+        float q2_q3 = 2 * q2 * q3;
+        float q1_q0 = 2 * q1 * q0;
+
+        if (R.length == 9) {
+            R[0] = 1 - sq_q2 - sq_q3;
+            R[1] = q1_q2 - q3_q0;
+            R[2] = q1_q3 + q2_q0;
+
+            R[3] = q1_q2 + q3_q0;
+            R[4] = 1 - sq_q1 - sq_q3;
+            R[5] = q2_q3 - q1_q0;
+
+            R[6] = q1_q3 - q2_q0;
+            R[7] = q2_q3 + q1_q0;
+            R[8] = 1 - sq_q1 - sq_q2;
+        } else if (R.length == 16) {
+            R[0] = 1 - sq_q2 - sq_q3;
+            R[1] = q1_q2 - q3_q0;
+            R[2] = q1_q3 + q2_q0;
+            R[3] = 0.0f;
+
+            R[4] = q1_q2 + q3_q0;
+            R[5] = 1 - sq_q1 - sq_q3;
+            R[6] = q2_q3 - q1_q0;
+            R[7] = 0.0f;
+
+            R[8] = q1_q3 - q2_q0;
+            R[9] = q2_q3 + q1_q0;
+            R[10] = 1 - sq_q1 - sq_q2;
+            R[11] = 0.0f;
+
+            R[12] = R[13] = R[14] = 0.0f;
+            R[15] = 1.0f;
+        }
     }
 
     /**
@@ -392,4 +483,82 @@ public class SensorMathFunctions {
 
         return values;
     }
+
+    public static boolean remapCoordinateSystem(float[] inR, int X, int Y,
+                                                float[] outR) {
+        if (inR == outR) {
+            final float[] temp = mTempMatrix;
+            synchronized (temp) {
+                // we don't expect to have a lot of contention
+                if (remapCoordinateSystemImpl(inR, X, Y, temp)) {
+                    final int size = outR.length;
+                    for (int i = 0; i < size; i++)
+                        outR[i] = temp[i];
+                    return true;
+                }
+            }
+        }
+        return remapCoordinateSystemImpl(inR, X, Y, outR);
+    }
+
+    private static boolean remapCoordinateSystemImpl(float[] inR, int X, int Y,
+                                                     float[] outR) {
+        /*
+         * X and Y define a rotation matrix 'r':
+         *
+         *  (X==1)?((X&0x80)?-1:1):0    (X==2)?((X&0x80)?-1:1):0    (X==3)?((X&0x80)?-1:1):0
+         *  (Y==1)?((Y&0x80)?-1:1):0    (Y==2)?((Y&0x80)?-1:1):0    (Y==3)?((X&0x80)?-1:1):0
+         *                              r[0] ^ r[1]
+         *
+         * where the 3rd line is the vector product of the first 2 lines
+         *
+         */
+
+        final int length = outR.length;
+        if (inR.length != length)
+            return false;   // invalid parameter
+        if ((X & 0x7C) != 0 || (Y & 0x7C) != 0)
+            return false;   // invalid parameter
+        if (((X & 0x3) == 0) || ((Y & 0x3) == 0))
+            return false;   // no axis specified
+        if ((X & 0x3) == (Y & 0x3))
+            return false;   // same axis specified
+
+        // Z is "the other" axis, its sign is either +/- sign(X)*sign(Y)
+        // this can be calculated by exclusive-or'ing X and Y; except for
+        // the sign inversion (+/-) which is calculated below.
+        int Z = X ^ Y;
+
+        // extract the axis (remove the sign), offset in the range 0 to 2.
+        final int x = (X & 0x3) - 1;
+        final int y = (Y & 0x3) - 1;
+        final int z = (Z & 0x3) - 1;
+
+        // compute the sign of Z (whether it needs to be inverted)
+        final int axis_y = (z + 1) % 3;
+        final int axis_z = (z + 2) % 3;
+        if (((x ^ axis_y) | (y ^ axis_z)) != 0)
+            Z ^= 0x80;
+
+        final boolean sx = (X >= 0x80);
+        final boolean sy = (Y >= 0x80);
+        final boolean sz = (Z >= 0x80);
+
+        // Perform R * r, in avoiding actual muls and adds.
+        final int rowLength = ((length == 16) ? 4 : 3);
+        for (int j = 0; j < 3; j++) {
+            final int offset = j * rowLength;
+            for (int i = 0; i < 3; i++) {
+                if (x == i) outR[offset + i] = sx ? -inR[offset + 0] : inR[offset + 0];
+                if (y == i) outR[offset + i] = sy ? -inR[offset + 1] : inR[offset + 1];
+                if (z == i) outR[offset + i] = sz ? -inR[offset + 2] : inR[offset + 2];
+            }
+        }
+        if (length == 16) {
+            outR[3] = outR[7] = outR[11] = outR[12] = outR[13] = outR[14] = 0;
+            outR[15] = 1;
+        }
+        return true;
+    }
+
 }

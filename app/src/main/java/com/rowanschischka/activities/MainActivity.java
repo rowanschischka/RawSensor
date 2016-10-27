@@ -5,7 +5,7 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
-import com.rowanschischka.data.SensorToCSVService;
+import com.rowanschischka.data.android.SensorToCSVService;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity";
