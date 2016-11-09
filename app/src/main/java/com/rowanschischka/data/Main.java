@@ -20,7 +20,8 @@ public class Main {
             filePath = inputReader.readLine();
             if (filePath.isEmpty()) {
                 //default value
-                filePath = "/home/rowan/sensordata/raw.csv";
+                //   filePath = "/home/rowan/sensordata/raw.csv";
+                filePath = "/Users/rowanschischka/sensorData/raw.csv";
             }
         } catch (IOException e) {
             e.printStackTrace();
