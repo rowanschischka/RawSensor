@@ -9,7 +9,7 @@ import java.util.ArrayList;
  */
 
 public class DataReplay {
-    public static DataRow[] replay(DataRow[] inputData, DataFunction function, String filePath) {
+    public static String replay(DataRow[] inputData, DataFunction function, String filePath) {
         ArrayList<DataRow> outputData = new ArrayList<>();
         for (int i = 0; i < inputData.length; i++) {
             DataRow result = function.processEvent(inputData[i]);
@@ -18,7 +18,8 @@ public class DataReplay {
         }
         DataRow[] outArray = new DataRow[outputData.size()];
         outputData.toArray(outArray);
-        CsvFile.writeFile(outArray, filePath + function.getType() + ".csv");
-        return outArray;
+        String filepath = filePath + function.getType() + ".csv";
+        CsvFile.writeFile(outArray, filepath);
+        return filepath;
     }
 }

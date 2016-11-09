@@ -5,7 +5,7 @@ import com.rowanschischka.data.Interfaces.DataFunction;
 import com.rowanschischka.data.SensorMath;
 
 /**
- * Created by rowanschischka on 27/10/16.
+ * calculates angles in degrees from raw rotation type
  */
 
 public class AnglesRaw implements DataFunction {

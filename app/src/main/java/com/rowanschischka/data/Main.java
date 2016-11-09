@@ -20,7 +20,7 @@ public class Main {
             filePath = inputReader.readLine();
             if (filePath.isEmpty()) {
                 //default value
-                filePath = "/Users/rowanschischka/sensorData/raw.csv";
+                filePath = "/home/rowan/sensordata/raw.csv";
             }
         } catch (IOException e) {
             e.printStackTrace();
@@ -29,11 +29,12 @@ public class Main {
         DataRow[] rawData = CsvFile.readFile(filePath);
         System.out.println(rawData.length + " rows of data");
         System.out.println(rawData[rawData.length - 1].getTime() / 1000000000f + " seconds of data");
-        DataReplay.replay(rawData, new DiscreteWindow(25), filePath);
-        DataReplay.replay(rawData, new DiscreteWindow(50), filePath);
-        DataReplay.replay(rawData, new DiscreteWindow(75), filePath);
+        //DataReplay.replay(rawData, new DiscreteWindow(25), filePath);
+        //DataReplay.replay(rawData, new DiscreteWindow(50), filePath);
+        //DataReplay.replay(rawData, new DiscreteWindow(75), filePath);
         DataReplay.replay(rawData, new DiscreteWindow(100), filePath);
-        DataReplay.replay(rawData, new DiscreteWindow(200), filePath);
+        //DataReplay.replay(rawData, new DiscreteWindow(200), filePath);
         DataReplay.replay(rawData, new AnglesRaw(), filePath);
+        //create a smoothing window
     }
 }
