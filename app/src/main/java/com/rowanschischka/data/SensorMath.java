@@ -17,11 +17,11 @@ public class SensorMath {
         return currentValue;
     }
 
-    public static float[] getChauvenet(float[] input, double deviationLimit, float[][] window) {
+    public static float[] getChauvenet(float[] input, float[][] window) {
         float[] average = getAverage(window);
         double stdDev = getStdDeviation(window, average);
         double distance = getDistance(input, average);
-        if (distance < deviationLimit) {
+        if (distance <= stdDev) {
             return input;
         }
         return average;

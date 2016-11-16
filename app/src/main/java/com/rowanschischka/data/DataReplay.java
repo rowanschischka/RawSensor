@@ -18,8 +18,8 @@ public class DataReplay {
         }
         DataRow[] outArray = new DataRow[outputData.size()];
         outputData.toArray(outArray);
-        String filepath = filePath + function.getType() + ".csv";
-        CsvFile.writeFile(outArray, filepath);
+        String filepath = filePath + function.getFileName() + ".csv";
+        FileIO.writeFile(outArray, filepath);
         return filepath;
     }
 }

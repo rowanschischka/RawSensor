@@ -15,8 +15,8 @@ import java.util.Collections;
 /**
  * Created by rowanschischka on 26/09/16.
  */
-public class CsvFile {
-    private static final String TAG = "CsvFile";
+public class FileIO {
+    private static final String TAG = "FileIO";
 
     public static int writeFile(DataRow[] data, String filePath) {
         System.out.println("Writing " + filePath);
@@ -77,29 +77,5 @@ public class CsvFile {
             }
         }
         return null;
-    }
-
-    public static int writeFloatData(double[] data, String filePath) {
-        BufferedWriter bufferedWriter = null;
-        int count = 0;
-        try {
-            File outputFile = new File(filePath);
-            bufferedWriter = new BufferedWriter(new FileWriter(outputFile));
-            //write table header
-            bufferedWriter.write(DataRow.getTableHeader() + "\n");
-            for (double dr : data) {
-                bufferedWriter.write(dr + "\n");
-                count++;
-            }
-        } catch (IOException e) {
-            Log.e(TAG, e.getMessage());
-        } finally {
-            try {
-                bufferedWriter.close();
-            } catch (IOException e) {
-                Log.e(TAG, e.getMessage());
-            }
-        }
-        return count;
     }
 }

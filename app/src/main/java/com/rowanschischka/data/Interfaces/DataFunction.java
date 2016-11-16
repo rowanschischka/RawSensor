@@ -9,5 +9,7 @@ import com.rowanschischka.data.DataRow;
 public interface DataFunction {
     String getType();
 
+    String getFileName();
+
     DataRow processEvent(DataRow dataRow);
 }

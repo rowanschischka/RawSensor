@@ -20,6 +20,11 @@ public class AnglesRaw implements DataFunction {
     }
 
     @Override
+    public String getFileName() {
+        return getType();
+    }
+
+    @Override
     public DataRow processEvent(DataRow dataRow) {
         if (dataRow.getType().equals(DataRow.TYPE_ROTATION_RAW)) {
             SensorMath.getRotationMatrixFromVector(mRotationMatrixFromVector, dataRow.getXYZ());

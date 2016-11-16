@@ -7,7 +7,7 @@ import com.rowanschischka.data.SensorMath;
 import java.util.ArrayList;
 
 /**
- * Created by rowanschischka on 27/10/16.
+ * Delete this
  */
 
 public class DiscreteWindow implements DataFunction {
@@ -26,6 +26,11 @@ public class DiscreteWindow implements DataFunction {
 
     @Override
     public String getType() {
+        return "DISCRETE_ROTATION";
+    }
+
+    @Override
+    public String getFileName() {
         return "DISCRETE_ROTATION" + windowSize;
     }
 

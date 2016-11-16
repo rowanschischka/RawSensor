@@ -22,6 +22,11 @@ public class DiscardDiscreteWindow implements DataFunction {
 
     @Override
     public String getType() {
+        return "DISCRETE_ROTATION";
+    }
+
+    @Override
+    public String getFileName() {
         return "DISCRETE_ROTATION" + windowSize;
     }
 
