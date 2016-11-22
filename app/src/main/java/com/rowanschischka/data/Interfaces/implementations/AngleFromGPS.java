@@ -27,7 +27,7 @@ public class AngleFromGPS implements DataFunction {
         if (dataRow.getType().equals(DataRow.TYPE_GPS)) {
             float currentSpeed = dataRow.getGpsSpeed();
             float currentAlt = dataRow.getGpsAltitude();
-            long currentTime = dataRow.getTime() / 1000000000;
+            long currentTime = dataRow.getTimeStamp() / 1000000000;
             if (prevSpeed == 0f) {
                 prevSpeed = currentSpeed;
                 prevAlt = currentAlt;
@@ -51,14 +51,13 @@ public class AngleFromGPS implements DataFunction {
 
             float[] values = new float[]{angleOpposite, angleHypotenuse, t};
 
-
-            System.out.println("ALT:" + currentAlt + " SPEED:" + currentSpeed + " DIFF_ALT" + diffAlt + " DIFF_TIME:" + diffTime + " DISTANCE:" + distance);
+            //System.out.println("ALT:" + currentAlt + " SPEED:" + currentSpeed + " DIFF_ALT" + diffAlt + " DIFF_TIME:" + diffTime + " DISTANCE:" + distance);
 
             prevSpeed = currentSpeed;
             prevAlt = currentAlt;
             prevTime = currentTime;
 
-            return new DataRow(getType(), dataRow.getTime(), values);
+            return new DataRow(getType(), dataRow.getTimeStamp(), values, dataRow.getUpTime());
         }
         return null;
     }

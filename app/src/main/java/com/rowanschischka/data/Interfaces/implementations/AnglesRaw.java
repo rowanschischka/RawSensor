@@ -37,7 +37,7 @@ public class AnglesRaw implements DataFunction {
             orientationVals[1] = (float) Math.toDegrees(orientationVals[1]);
             orientationVals[2] = (float) Math.toDegrees(orientationVals[2]);
 
-            DataRow result = new DataRow(getType(), dataRow.getTime(), orientationVals);
+            DataRow result = new DataRow(getType(), dataRow.getTimeStamp(), orientationVals, dataRow.getUpTime());
             return result;
         }
         return null;

@@ -29,10 +29,6 @@ import java.util.List;
 
 public class SensorToCSVService extends Service implements SensorEventListener, LocationListener {
     private static final String TAG = "SensorToCSVService";
-    long startTime;
-    float[] mRotationMatrixFromVector = new float[9];
-    float[] mRotationMatrix = new float[9];
-    float[] orientationVals = new float[3];
     //GPS
     private LocationManager locationManager;
     //sensor
@@ -46,8 +42,6 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
 
     @Override
     public void onCreate() {
-        //counters
-        startTime = 0;
         //list all sensors to log
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         List<Sensor> all = sensorManager.getSensorList(Sensor.TYPE_ALL);
@@ -74,7 +68,6 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
     public void onDestroy() {
         sensorManager.unregisterListener(this);
         locationManager.removeUpdates(this);
-        long time = SystemClock.elapsedRealtimeNanos() - startTime;
         printWriter.flush();
         printWriter.close();
         super.onDestroy();
@@ -89,48 +82,19 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
         sensorManager.registerListener(this, sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), DataRow.SENSOR_RATE);//SensorManager.SENSOR_DELAY_FASTEST);
         //GPS
         locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
-        //Log.i(TAG, "service started");
         printWriter.println(DataRow.getTableHeader());
         return START_STICKY;
     }
 
-    private void checkStartTime() {
-        if (startTime == 0) {
-            startTime = SystemClock.elapsedRealtimeNanos();
-        }
-    }
-
     @Override
     public void onSensorChanged(SensorEvent event) {
-        checkStartTime();
-        long elapsedTime = event.timestamp - startTime;
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER
                 || event.sensor.getType() == Sensor.TYPE_MAGNETIC_FIELD
                 || event.sensor.getType() == Sensor.TYPE_GRAVITY
                 || event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-            String dataRow = DataRow.eventToString(event, elapsedTime);
+            String dataRow = DataRow.eventToString(event, event.timestamp, SystemClock.elapsedRealtimeNanos());
             printWriter.println(dataRow);
-            //Log.i("TYPE:"event.sensor.getType(), "X:" + event.values[0] + ". Y:" + event.values[1] + ". Z:" + event.values[2]);
         }
-        /*
-        if (event.sensor.getType() == Sensor.TYPE_GRAVITY_RAW) {
-           // Log.i("GRAV","X:"+event.values[0]+". Y:"+event.values[1]+". Z:"+event.values[2]);
-        } else if (event.sensor.getType() == Sensor.TYPE_ROTATION_VECTOR) {
-            // It is good practice to check that we received the proper sensor event
-
-            // Convert the rotation-vector to a 4x4 matrix.
-            SensorManager.getRotationMatrixFromVector(mRotationMatrixFromVector, event.values);
-            SensorManager.remapCoordinateSystem(mRotationMatrixFromVector,
-                    SensorManager.AXIS_X, SensorManager.AXIS_Z,
-                    mRotationMatrix);
-            SensorManager.getOrientation(mRotationMatrix, orientationVals);
-
-            // Optionally convert the result from radians to degrees
-            orientationVals[0] = (float) Math.toDegrees(orientationVals[0]);
-            orientationVals[1] = (float) Math.toDegrees(orientationVals[1]);
-            orientationVals[2] = (float) Math.toDegrees(orientationVals[2]);
-
-        }*/
     }
 
     @Override
@@ -139,10 +103,7 @@ public class SensorToCSVService extends Service implements SensorEventListener, 
 
     @Override
     public void onLocationChanged(Location location) {
-        checkStartTime();
-        long elapsedTime = location.getElapsedRealtimeNanos() - startTime;
-        String dataRow = DataRow.locationToString(location, elapsedTime);
-        //Log.i(TAG, dataRow);
+        String dataRow = DataRow.locationToString(location, location.getElapsedRealtimeNanos(), SystemClock.elapsedRealtimeNanos());
         printWriter.println(dataRow);
     }
 

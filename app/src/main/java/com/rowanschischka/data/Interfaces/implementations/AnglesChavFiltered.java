@@ -72,8 +72,8 @@ public class AnglesChavFiltered implements DataFunction {
 
             if (windowFull) {
                 orientationVals = SensorMath.getChauvenet(orientationVals, window);
-                DataRow result = new DataRow(getType(), dataRow.getTime(), orientationVals);
-                return result;
+                //DataRow result = new DataRow(getType(), dataRow.getTimeStamp(), orientationVals);
+                //return result;
             }
         }
         return null;

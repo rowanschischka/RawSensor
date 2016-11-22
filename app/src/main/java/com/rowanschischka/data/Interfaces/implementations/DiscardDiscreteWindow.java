@@ -40,8 +40,8 @@ public class DiscardDiscreteWindow implements DataFunction {
             angleWindow.toArray(range);
             angleWindow = new ArrayList<>();
             float[] average = SensorMath.getAverage(range);
-            DataRow result = new DataRow(getType(), dataRow.getTime(), average);
-            return result;
+            //DataRow result = new DataRow(getType(), dataRow.getTimeStamp(), average);
+            //return result;
         }
         return null;
     }
